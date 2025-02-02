@@ -45,7 +45,7 @@ body {
     height: auto;
     width: 50%;
     padding: 20px;
-    min-height: 300px;
+    min-height: 400px;
 }
 
 .login-header {
@@ -68,7 +68,7 @@ h1.welcome {
 
 .input-group {
     width: 100%;
-    margin-bottom: 15px;
+    margin-bottom: 10px;
 }
 
 .input-group input {
