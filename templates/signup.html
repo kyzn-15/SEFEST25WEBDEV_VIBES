@@ -1,0 +1,48 @@
+{% extends 'layout.html' %}
+
+{% block title %} Homepage {% endblock %}
+
+{% block css %}
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/style.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="login-container">
+    <div class="login-left">
+        <h1 class="welcome">Hello 👋</h1>
+        <img src="{{ url_for('static', filename='img/brand_logo.png') }}" alt="Frilo Logo" class="brand_logo"/>
+        <div></div>
+    </div>
+    <div class="login-right">
+        <div class="login-header">
+            <h1>Create an Account</h1>
+        </div>
+
+        <form id="signupForm" onsubmit="return validateSignup(event)">
+            <div class="input-group">
+                <input type="text" id="username" placeholder="Username" required>
+            </div>
+            <div class="input-group">
+                <input type="email" id="email" placeholder="Email" required>
+            </div>
+            <div class="input-group">
+                <input type="password" id="password" placeholder="Password" required>
+            </div>
+            <div class="input-group">
+                <input type="password" id="confirm_password" placeholder="Confirm Password" required>
+            </div>
+        
+            <div class="error-message" id="errorMessage"></div>
+        
+            <button type="submit" class="login-button">Create</button>
+        </form>
+        
+        <span class="login-new_link">Already have an account? <a href="#">Login</a></span>
+    </div>
+</div>
+
+<script src="{{ url_for('static', filename='js/script.js') }}"></script>
+
+<!-- Font Awesome for social icons -->
+<script src="https://kit.fontawesome.com/your-kit-code.js" crossorigin="anonymous"></script>
+{% endblock %}
