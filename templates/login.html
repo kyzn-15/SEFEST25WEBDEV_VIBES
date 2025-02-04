@@ -1,9 +1,9 @@
 {% extends 'layout.html' %}
 
-{% block title %} Homepage {% endblock %}
+{% block title %} Login {% endblock %}
 
 {% block css %}
-    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/login.css') }}">
 {% endblock %}
 
 {% block content %}
@@ -32,12 +32,12 @@
             </div>
 
             <div class="additional-links">
-                <a href="#" class="link-forgot">Forgot Password?</a>
+                <a href="/signup" class="link-forgot">Forgot Password?</a>
             </div>
 
             <button type="submit" class="login-button">Login</button>
         </form>
-        <span class="login-new_link">New User? <a href="#">Sign Up</a></span>
+        <span class="login-new_link">New User? <a href="/signup">Sign Up</a></span>
     </div>
 </div>
 
