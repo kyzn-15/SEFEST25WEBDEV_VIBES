@@ -174,3 +174,78 @@ h1.welcome {
     }
 }
 
+/* Your existing styles */
+/* Reset default styling */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    background: linear-gradient(135deg, #5063D5, #209B9F);
+    padding: 20px;
+}
+
+/* Your existing styles here */
+
+/* Add these new styles for flash messages */
+.flash-messages {
+    width: 100%;
+    margin: 10px 0;
+}
+
+.alert {
+    padding: 12px;
+    margin-bottom: 10px;
+    border-radius: 50px;
+    text-align: center;
+    font-size: 14px;
+}
+
+.alert-error {
+    background-color: #ffe6e6;
+    color: #d63031;
+    border: 1px solid #d63031;
+}
+
+.alert-success {
+    background-color: #e6ffe6;
+    color: #27ae60;
+    border: 1px solid #27ae60;
+}
+
+.alert-warning {
+    background-color: #fff3e6;
+    color: #e67e22;
+    border: 1px solid #e67e22;
+}
+
+/* Make error message visible */
+.error-message {
+    display: block;
+    width: 100%;
+    margin: 10px 0;
+}
+
+/* Add more specific styles for the header on dashboard */
+header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 70px;
+    background-color: white;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 20px;
+    box-shadow: 0 0 50px rgba(0, 0, 0, 0.1);
+    z-index: 1000;
+}
+
+/* Your other existing styles */

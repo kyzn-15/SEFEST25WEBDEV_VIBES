@@ -1,6 +1,6 @@
 {% extends 'layout.html' %}
 
-{% block title %} Login {% endblock %}
+{% block title %}Login{% endblock %}
 
 {% block css %}
     <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/login.css') }}">
@@ -11,38 +11,39 @@
     <div class="login-left">
         <h1 class="welcome">Welcome back</h1>
         <img src="{{ url_for('static', filename='img/brand_logo.png') }}" alt="Frilo Logo" class="brand_logo"/>
-        <div></div>
     </div>
     <div class="login-right">
         <div class="login-header">
             <h1>Login</h1>
         </div>
 
-        <form id="loginForm" onsubmit="return validateForm(event)">
+        <form id="loginForm" method="POST" action="{{ url_for('login') }}">
             <div class="input-group">
-                <input type="text" id="username" placeholder="Username" required>
+                <input type="text" name="username" placeholder="Username" required>
             </div>
 
             <div class="input-group">
-                <input type="password" id="password" placeholder="Password" required>
+                <input type="password" name="password" placeholder="Password" required>
             </div>
 
-            <div class="error-message" id="errorMessage">
-                Invalid username or password!
-            </div>
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    <div class="flash-messages">
+                        {% for category, message in messages %}
+                            <div class="alert alert-{{ category }}">{{ message }}</div>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            {% endwith %}
 
             <div class="additional-links">
-                <a href="/signup" class="link-forgot">Forgot Password?</a>
+                <a href="#" class="link-forgot">Forgot Password?</a>
             </div>
 
             <button type="submit" class="login-button">Login</button>
         </form>
-        <span class="login-new_link">New User? <a href="/signup">Sign Up</a></span>
+        
+        <span class="login-new_link">New User? <a href="{{ url_for('signup') }}">Sign Up</a></span>
     </div>
 </div>
-
-<script src="{{ url_for('static', filename='js/script.js') }}"></script>
-
-<!-- Font Awesome for social icons -->
-<script src="https://kit.fontawesome.com/your-kit-code.js" crossorigin="anonymous"></script>
 {% endblock %}

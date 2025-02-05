@@ -16,7 +16,7 @@
     <header>
         <img src="{{ url_for('static', filename='img/brand_logo.png') }}" alt="Frilo Brand Logo" class="nav_brand_logo" />
         <nav>
-            <a href="/home" id="home" title="Home">
+            <a href="{{ url_for('dashboard') }}" id="home" title="Home">
                 <div>
                     <i class='bx bx-home'></i>
                     Home

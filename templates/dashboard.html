@@ -1,0 +1,12 @@
+{% extends 'layout.html' %}
+
+{% block title %}Dashboard{% endblock %}
+{% block css %}
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/dashboard.css') }}">
+{% endblock %}
+{% block content %}
+<div class="dashboard-container">
+    <h1>Welcome, {{ session['username'] }}!</h1>
+    <!-- Add your dashboard content here -->
+</div>
+{% endblock %}
