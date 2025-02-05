@@ -18,33 +18,32 @@
         <nav>
             <a href="{{ url_for('dashboard') }}" id="home" title="Home">
                 <div>
-                    <i class='bx bx-home'></i>
+                    <i class='bx bxs-home' style='color:#004AAD'></i>
                     Home
                 </div>
             </a>
             <a href="/messages" id="messages" title="Messages">
                 <div>
-                    <i class='bx bxs-message'></i>
+                    <i class='bx bxs-message' style='color:#004AAD'></i>
                     Messages
                 </div>
             </a>
             <a href="/search" id="search" title="Search">
                 <div>
-                    <i class='bx bx-search'></i>
+                    <i class='bx bx-search' style='color:#004AAD'></i>
                     Search
                 </div>
             </a>
             <a href="/box" id="box" title="Box">
                 <div>
-                    <i class='bx bxs-box'></i>
+                    <i class='bx bxs-box' style='color:#004AAD'></i>
                     Box
                 </div>
             </a>
         </nav>
         <div class="account">
             <a href="/user-profile" title="User Profile">
-                <img src="{{ url_for('static', filename='img/brand_logo.png') }}" class="user_profile" alt="User Account" />
-                <p>Account</p>
+                <img src="{{ url_for('static', filename='img/default_profile.png') }}" class="user_profile" alt="User Account" />
             </a>
         </div>
     </header>

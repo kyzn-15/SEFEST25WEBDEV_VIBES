@@ -6,7 +6,38 @@
 {% endblock %}
 {% block content %}
 <div class="dashboard-container">
-    <h1>Welcome, {{ session['username'] }}!</h1>
-    <!-- Add your dashboard content here -->
+    <div class="user-profile-container card">
+        <span class="profile-icon">👤</span>
+        <div class="user-profile">
+            <h1>{{ session['username'] }}</h1>
+            <h2>Freelancer | Developer</h2>
+        </div>
+    </div>
+
+    <div class="user-payment-container card">
+        <div class="user-payment-desc">
+            <h1>Saldo FriPay</h1>
+            <h2>Rp 5.000.000,00</h2>
+        </div>
+
+        <div class="user-payment-topup">
+            <div class="action-button">
+                <span>✅</span>
+                <h3>Cairkan Dana</h3>
+            </div>
+            <div class="action-button">
+                <span>⚠️</span>
+                <h3>Laporkan Masalah</h3>
+            </div>
+        </div>
+    </div>
+
+    <div class="user-rating card">
+        <span class="rating-icon">⭐</span>
+        <div class="user-rating-desc">
+            <p>4.5/5.0</p>
+            <p>Positive Rating</p>
+        </div>
+    </div>
 </div>
 {% endblock %}

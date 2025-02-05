@@ -15,8 +15,8 @@ header {
 
 /* Brand Logo */
 .nav_brand_logo {
-    width: 40px;
-    height: 40px;
+    width: 80px;
+    height: 80px;
     object-fit: cover;
 }
 
@@ -30,7 +30,7 @@ nav {
 
 nav a {
     text-decoration: none;
-    color: black;
+    color: #004AAD;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -38,7 +38,7 @@ nav a {
 }
 
 nav a i {
-    font-size: 24px;
+    font-size: 30px;
     margin-bottom: 5px;
 }
 
@@ -49,16 +49,10 @@ nav a div {
 }
 
 /* Account Profile */
-.account a {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-}
 
 .user_profile {
-    width: 40px;
-    height: 40px;
+    width: 50px;
+    height: 50px;
     border-radius: 50%;
     object-fit: cover;
 }
