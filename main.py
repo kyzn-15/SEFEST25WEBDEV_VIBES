@@ -16,10 +16,12 @@ mongo = PyMongo(app)
 def home():
     if 'username' in session:
         return redirect(url_for('dashboard'))
-    return redirect(url_for('signup'))
+    return redirect(url_for('login'))
 
 @app.route('/signup', methods=['GET', 'POST'])
 def signup():
+    if 'username' in session:
+        return redirect(url_for('dashboard'))
     if request.method == 'POST':
         username = request.form['username']
         email = request.form['email']
@@ -53,6 +55,8 @@ def signup():
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
+    if 'username' in session:
+        return redirect(url_for('dashboard'))
     if request.method == 'POST':
         username = request.form['username']
         password = request.form['password']
