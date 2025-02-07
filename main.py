@@ -65,12 +65,16 @@ def survey():
     if 'username' not in session:
         flash('Please login first!', 'warning')
         return redirect(url_for('login'))
-    elif 'username' in session:
-        flash('Please login first!', 'warning')
-        return redirect(url_for('login'))
-        
     
     user = mongo.db.users.find_one({"username": session['username']})
+    
+    if not user:  # Jika user tidak ditemukan, logout dan minta login ulang
+        flash("User not found, please log in again.", "error")
+        return redirect(url_for('logout'))
+
+    if user.get("role"):  # Jika sudah mengisi survey, langsung ke dashboard
+        return redirect(url_for('dashboard'))
+    
 
     if request.method == 'POST':
         role = request.form.get('role')
@@ -123,6 +127,15 @@ def login():
         if user and check_password_hash(user['password'], password):
             session.permanent = True  # Terapkan sesi
             session['username'] = username
+            
+            session['user'] = {
+                "username": user['username'],
+                "email": user['email'],
+                "role": user.get('role', None),
+                "profile_data": user.get('profile_data', {}),
+                "firstName": user.get('firstName', ''),
+                "lastName": user.get('lastName', '')
+            }
 
             if not user.get("role"):  # Jika belum isi survey, arahkan ke survey
                 return redirect(url_for('survey'))

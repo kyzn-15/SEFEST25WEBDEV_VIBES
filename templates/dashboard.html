@@ -9,8 +9,8 @@
     <div class="user-profile-container card">
         <span class="profile-icon">👤</span>
         <div class="user-profile">
-            <h1>{{ session['username'] }}</h1>
-            <h2>Freelancer | Developer</h2>
+            <h1>{{ session['user']['firstName'] }} {{session['user']['lastName']}} </h1>
+            <h2>{{ session['user']['role'] }} | {{ session['user']['profile_data']['job'] }}</h2>
         </div>
     </div>
 
