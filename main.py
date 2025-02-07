@@ -1,15 +1,19 @@
 from flask import *
 from flask_pymongo import PyMongo
 from werkzeug.security import generate_password_hash, check_password_hash
-from datetime import datetime
+from datetime import datetime, timedelta
 import os
 
 app = Flask(__name__)
 app.secret_key = os.urandom(24)
 
-# MongoDB configuration
+app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(days=1)
+
+# Konfigurasi MongoDB
 app.config["MONGO_URI"] = "mongodb://localhost:27017/friloapp"
 mongo = PyMongo(app)
+
+# ==================== ROUTES ====================
 
 @app.route('/')
 @app.route('/homepage')
@@ -22,9 +26,10 @@ def home():
 def signup():
     if 'username' in session:
         return redirect(url_for('dashboard'))
+
     if request.method == 'POST':
-        username = request.form['username']
-        email = request.form['email']
+        username = request.form['username'].strip()
+        email = request.form['email'].strip()
         password = request.form['password']
         confirm_password = request.form['confirm_password']
 
@@ -45,18 +50,70 @@ def signup():
             "username": username,
             "email": email,
             "password": hashed_password,
-            "created_at": datetime.utcnow()
+            "created_at": datetime.utcnow(),
+            "role": None,  # Default belum isi survey
+            "profile_data": {}
         })
-        
+
         flash("Registration successful! Please login.", "success")
         return redirect(url_for('login'))
 
     return render_template('signup.html')
 
+@app.route('/survey', methods=['GET', 'POST'])
+def survey():
+    if 'username' not in session:
+        flash('Please login first!', 'warning')
+        return redirect(url_for('login'))
+    elif 'username' in session:
+        flash('Please login first!', 'warning')
+        return redirect(url_for('login'))
+        
+    
+    user = mongo.db.users.find_one({"username": session['username']})
+
+    if request.method == 'POST':
+        role = request.form.get('role')
+        industry = request.form.get('industry')
+        job = request.form.get('job')
+        avatar = request.form.get('avatar')
+
+        if not role:
+            flash("Please select a role!", "error")
+            return redirect(url_for('survey'))
+
+        profile_data = {}
+        if role == "worker":
+            profile_data['skills'] = request.form.getlist('skills')
+        elif role == "hirer":
+            profile_data['requirements'] = request.form.get('requirements')
+
+        profile_data.update({
+            "industry": industry or "Not specified",
+            "job": job or "Not specified",
+            "avatar": avatar or "default.png"
+        })
+
+        # Update MongoDB with the survey data
+        mongo.db.users.update_one(
+            {"username": session['username']},
+            {"$set": {"role": role, "profile_data": profile_data}}
+        )
+
+        flash("Survey completed successfully!", "success")
+        
+        # Redirect to the dashboard after survey submission
+        return redirect(url_for('dashboard'))
+
+    return render_template('survey.html', user=user)
+
+
+
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if 'username' in session:
         return redirect(url_for('dashboard'))
+
     if request.method == 'POST':
         username = request.form['username']
         password = request.form['password']
@@ -64,7 +121,12 @@ def login():
         user = mongo.db.users.find_one({"username": username})
         
         if user and check_password_hash(user['password'], password):
+            session.permanent = True  # Terapkan sesi
             session['username'] = username
+
+            if not user.get("role"):  # Jika belum isi survey, arahkan ke survey
+                return redirect(url_for('survey'))
+
             flash('Login successful!', 'success')
             return redirect(url_for('dashboard'))
         else:
@@ -72,12 +134,19 @@ def login():
     
     return render_template('login.html')
 
+
 @app.route('/dashboard')
 def dashboard():
     if 'username' not in session:
         flash('Please login first!', 'warning')
         return redirect(url_for('login'))
-    return render_template('dashboard.html')
+
+    user = mongo.db.users.find_one({"username": session['username']})
+    if not user.get("role"):  # Jika belum menyelesaikan survey, arahkan ke survey
+        return redirect(url_for('survey'))
+
+    return render_template('dashboard.html', user=user)
+
 
 @app.route('/logout')
 def logout():
@@ -85,5 +154,45 @@ def logout():
     flash('Logged out successfully!', 'success')
     return redirect(url_for('login'))
 
+@app.route('/api/submit-survey', methods=['POST'])
+def submit_survey():
+    if 'username' not in session:
+        return jsonify({'error': 'Unauthorized'}), 401
+
+    data = request.get_json()
+    if not data:
+        return jsonify({'error': 'No data provided'}), 400
+
+    # Extract data from JSON payload
+    role = data.get('role')
+    industry = data.get('industry')
+    job = data.get('job')
+    avatar = data.get('avatar')
+    first_name = data.get('firstName')
+    last_name = data.get('lastName')
+
+    # Basic validation
+    if not role:
+        return jsonify({'error': 'Role is required'}), 400
+
+    # Prepare profile data
+    profile_data = {
+        'industry': industry or 'Not specified',
+        'job': job or 'Not specified',
+        'avatar': avatar or 'default.png'
+    }
+
+    # Update user document in MongoDB
+    mongo.db.users.update_one(
+        {'username': session['username']},
+        {'$set': {
+            'role': role,
+            'firstName': first_name,
+            'lastName': last_name,
+            'profile_data': profile_data
+        }}
+    )
+
+    return jsonify({'success': True, 'redirect': url_for('dashboard')}), 200
 if __name__ == '__main__':
     app.run(debug=True)

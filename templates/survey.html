@@ -1,0 +1,259 @@
+{% extends 'login_layout.html' %}
+
+{% block title %}Survey - Frilo{% endblock %}
+
+{% block css %}
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/survey.css') }}">
+{% endblock %}
+
+{% block content %}
+    <div class="survey-container">
+        <!-- Step 1: Role Selection -->
+        <div class="survey-card" id="question-1">
+            <h2>What would you like to do?</h2>
+            <div class="options">
+                <div class="option" data-role="worker">
+                    <img src="{{ url_for('static', filename='img/worker.jpg') }}" alt="I want to work">
+                    <p>I want to work</p>
+                </div>
+                <div class="option" data-role="hirer">
+                    <img src="{{ url_for('static', filename='img/hirer.jpg') }}" alt="I want to hire">
+                    <p>I want to hire</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Step 2: Industry Selection -->
+        <div class="survey-card" id="question-2" style="display: none;">
+            <h2>Select Your Industry</h2>
+            <div class="options" id="industry-options"></div>
+            <button class="skip-button">Skip</button>
+        </div>
+
+        <!-- Step 3: Job Selection -->
+        <div class="survey-card" id="question-3" style="display: none;">
+            <h2>Select Specific Job</h2>
+            <div class="options" id="job-options"></div>
+            <button class="skip-button">Skip</button>
+        </div>
+
+        <!-- Step 4: Profile Completion -->
+        <div class="survey-card" id="question-4" style="display: none;">
+            <h2>Complete Your Profile</h2>
+            <div class="profile-form">
+                <div class="form-group">
+                    <input type="text" id="first-name" placeholder="First Name" required>
+                    <div class="error-message" id="first-name-error"></div>
+                </div>
+                <div class="form-group">
+                    <input type="text" id="last-name" placeholder="Last Name" required>
+                    <div class="error-message" id="last-name-error"></div>
+                </div>
+                <h3>Choose Avatar</h3>
+                <div class="avatar-options">
+                    <img src="{{ url_for('static', filename='img/avatar1.jpg') }}" class="avatar" data-avatar="avatar1.jpg" alt="Avatar 1">
+                    <img src="{{ url_for('static', filename='img/avatar2.jpg') }}" class="avatar" data-avatar="avatar2.jpg" alt="Avatar 2">
+                    <img src="{{ url_for('static', filename='img/avatar3.jpg') }}" class="avatar" data-avatar="avatar3.jpg" alt="Avatar 3">
+                </div>
+                <button id="submit-survey" class="submit-button">Complete</button>
+            </div>
+        </div>
+
+        <!-- Progress Indicator -->
+        <div class="progress-indicator">
+            <span class="step active" data-step="1"></span>
+            <span class="step" data-step="2"></span>
+            <span class="step" data-step="3"></span>
+            <span class="step" data-step="4"></span>
+        </div>
+    </div>
+
+    <script>
+        const JobsData = {
+            industries: [
+                { id: 'finance', name: 'Finance' },
+                { id: 'health', name: 'Health' },
+                { id: 'tech', name: 'Technology' },
+                { id: 'education', name: 'Education' },
+                { id: 'marketing', name: 'Marketing' }
+            ],
+            jobs: {
+                finance: ['Analyst', 'Accountant', 'Trader'],
+                health: ['Doctor', 'Nurse', 'Pharmacist'],
+                tech: ['Software Engineer', 'Data Scientist', 'UI/UX Designer'],
+                education: ['Teacher', 'Professor', 'Educational Consultant'],
+                marketing: ['Digital Marketer', 'SEO Specialist', 'Content Strategist']
+            }
+        };
+
+        class SurveyManager {
+            constructor() {
+                this.currentStep = 1;
+                this.userData = {
+                    role: null,
+                    industry: null,
+                    job: null,
+                    firstName: '',
+                    lastName: '',
+                    avatar: null
+                };
+                this.initEvents();
+                this.populateIndustries();
+                this.updateProgressIndicator();
+            }
+
+            initEvents() {
+                // Role selection
+                document.querySelectorAll('.option').forEach(option => {
+                    option.addEventListener('click', (e) => {
+                        const role = e.currentTarget.dataset.role;
+                        if (role) this.handleRoleSelection(role);
+                    });
+                });
+
+                // Skip buttons
+                document.querySelectorAll('.skip-button').forEach(button => {
+                    button.addEventListener('click', () => this.showNextQuestion());
+                });
+
+                // Avatar selection
+                document.querySelectorAll('.avatar').forEach(avatar => {
+                    avatar.addEventListener('click', (e) => this.handleAvatarSelection(e.target));
+                });
+
+                // Form submission
+                document.getElementById('submit-survey').addEventListener('click', () => {
+                    this.handleSubmission();
+                });
+
+                // Input validation
+                ['first-name', 'last-name'].forEach(id => {
+                    document.getElementById(id).addEventListener('input', (e) => {
+                        this.validateInput(e.target);
+                    });
+                });
+            }
+
+            validateInput(input) {
+                const errorElement = document.getElementById(`${input.id}-error`);
+                if (!input.value.trim()) {
+                    errorElement.textContent = 'This field is required';
+                    return false;
+                }
+                errorElement.textContent = '';
+                return true;
+            }
+
+            populateIndustries() {
+                const container = document.getElementById('industry-options');
+                container.innerHTML = JobsData.industries.map(industry => `
+                    <div class="option" data-industry="${industry.id}">
+                        <p>${industry.name}</p>
+                    </div>
+                `).join('');
+
+                container.querySelectorAll('.option').forEach(option => {
+                    option.addEventListener('click', () => 
+                        this.handleIndustrySelection(option.dataset.industry)
+                    );
+                });
+            }
+
+            loadJobsForIndustry(industry) {
+                const container = document.getElementById('job-options');
+                container.innerHTML = (JobsData.jobs[industry] || []).map(job => `
+                    <div class="option">
+                        <p>${job}</p>
+                    </div>
+                `).join('');
+
+                container.querySelectorAll('.option').forEach((option, index) => {
+                    option.addEventListener('click', () => 
+                        this.handleJobSelection(JobsData.jobs[industry][index])
+                    );
+                });
+            }
+
+            handleRoleSelection(role) {
+                this.userData.role = role;
+                document.querySelectorAll('[data-role]').forEach(el => 
+                    el.classList.remove('selected')
+                );
+                document.querySelector(`[data-role="${role}"]`).classList.add('selected');
+                this.showNextQuestion();
+            }
+
+            handleIndustrySelection(industry) {
+                this.userData.industry = industry;
+                this.loadJobsForIndustry(industry);
+                this.showNextQuestion();
+            }
+
+            handleJobSelection(job) {
+                this.userData.job = job;
+                this.showNextQuestion();
+            }
+
+            handleAvatarSelection(avatarElement) {
+                document.querySelectorAll('.avatar').forEach(img => 
+                    img.classList.remove('selected')
+                );
+                avatarElement.classList.add('selected');
+                this.userData.avatar = avatarElement.dataset.avatar;
+            }
+
+            async handleSubmission() {
+                const firstName = document.getElementById('first-name');
+                const lastName = document.getElementById('last-name');
+
+                if (!this.validateInput(firstName) || !this.validateInput(lastName)) {
+                    return;
+                }
+
+                this.userData.firstName = firstName.value.trim();
+                this.userData.lastName = lastName.value.trim();
+
+                try {
+                    const response = await fetch('/api/submit-survey', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]')?.content
+                        },
+                        body: JSON.stringify(this.userData)
+                    });
+
+                    if (!response.ok) {
+                        throw new Error(await response.text());
+                    }
+
+                    window.location.href = '/dashboard';
+                } catch (error) {
+                    console.error('Survey submission error:', error);
+                    alert('An error occurred. Please try again.');
+                }
+            }
+
+            showNextQuestion() {
+                document.querySelectorAll('.survey-card').forEach(card => 
+                    card.style.display = 'none'
+                );
+                const nextCard = document.getElementById(`question-${++this.currentStep}`);
+                if (nextCard) {
+                    nextCard.style.display = 'block';
+                    this.updateProgressIndicator();
+                }
+            }
+
+            updateProgressIndicator() {
+                document.querySelectorAll('.step').forEach((step, index) => {
+                    step.classList.toggle('active', index + 1 <= this.currentStep);
+                });
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            new SurveyManager();
+        });
+    </script>
+{% endblock %}

@@ -1,0 +1,165 @@
+/* Base styles */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+/* Container */
+.survey-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    background: linear-gradient(to right, #3b82f6, #9333ea);
+    padding: 1rem;
+}
+
+/* Card */
+.survey-card {
+    background-color: white;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+    border-radius: 1rem;
+    padding: 2rem;
+    width: 100%;
+    max-width: 32rem;
+    text-align: center;
+    transform: translateY(0);
+    transition: all 0.5s ease;
+}
+
+/* Typography */
+h2 {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #1f2937;
+    margin-bottom: 1.5rem;
+}
+
+/* Options Container */
+.options {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 1rem;
+}
+
+/* Option Item */
+.option {
+    background-color: #f3f4f6;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    border-radius: 0.5rem;
+    padding: 1rem;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 10rem;
+}
+
+.option:hover {
+    background-color: #3b82f6;
+    color: white;
+}
+
+.option img {
+    width: 4rem;
+    height: 4rem;
+    margin-bottom: 0.5rem;
+}
+
+.option p {
+    font-size: 0.875rem;
+    font-weight: 600;
+}
+
+/* Skip Button */
+.skip-button {
+    margin-top: 1.5rem;
+    padding: 0.5rem 1.5rem;
+    background-color: #d1d5db;
+    color: #1f2937;
+    border-radius: 0.5rem;
+    border: none;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.skip-button:hover {
+    background-color: #9ca3af;
+}
+
+/* Profile Form */
+.profile-form {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+}
+
+/* Input Fields */
+input {
+    width: 100%;
+    padding: 0.5rem 1rem;
+    border: 1px solid #d1d5db;
+    border-radius: 0.5rem;
+    transition: all 0.3s ease;
+}
+
+input:focus {
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.5);
+}
+
+/* Avatar Section */
+.avatar-options {
+    display: flex;
+    gap: 1rem;
+}
+
+.avatar {
+    width: 4rem;
+    height: 4rem;
+    border-radius: 50%;
+    cursor: pointer;
+    border: 4px solid transparent;
+    transition: all 0.3s ease;
+}
+
+.avatar.selected {
+    border-color: #3b82f6;
+}
+
+/* Submit Button */
+.submit-button {
+    margin-top: 1.5rem;
+    padding: 0.75rem 1.5rem;
+    background-color: #3b82f6;
+    color: white;
+    font-weight: 600;
+    border-radius: 0.5rem;
+    border: none;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.submit-button:hover {
+    background-color: #2563eb;
+}
+
+/* Responsive Design */
+@media (max-width: 640px) {
+    .survey-card {
+        padding: 1.5rem;
+    }
+
+    .options {
+        gap: 0.75rem;
+    }
+
+    .option {
+        width: calc(50% - 0.75rem);
+    }
+}
