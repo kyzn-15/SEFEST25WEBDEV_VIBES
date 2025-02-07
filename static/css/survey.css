@@ -3,6 +3,7 @@
     margin: 0;
     padding: 0;
     box-sizing: border-box;
+    font-family: 'Poppins', sans-serif;
 }
 
 /* Container */
@@ -12,8 +13,9 @@
     align-items: center;
     justify-content: center;
     min-height: 100vh;
-    background: linear-gradient(to right, #3b82f6, #9333ea);
+    background: linear-gradient(135deg, #3b82f6, #9333ea);
     padding: 1rem;
+    transition: all 0.3s ease-in-out;
 }
 
 /* Card */
@@ -26,12 +28,19 @@
     max-width: 32rem;
     text-align: center;
     transform: translateY(0);
-    transition: all 0.5s ease;
+    transition: all 0.5s ease-in-out;
+    opacity: 0;
+    animation: fadeIn 0.8s forwards;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
 }
 
 /* Typography */
 h2 {
-    font-size: 1.5rem;
+    font-size: 1.75rem;
     font-weight: 700;
     color: #1f2937;
     margin-bottom: 1.5rem;
@@ -57,11 +66,13 @@ h2 {
     flex-direction: column;
     align-items: center;
     width: 10rem;
+    transition: transform 0.2s;
 }
 
 .option:hover {
     background-color: #3b82f6;
     color: white;
+    transform: scale(1.05);
 }
 
 .option img {
@@ -102,15 +113,16 @@ h2 {
 /* Input Fields */
 input {
     width: 100%;
-    padding: 0.5rem 1rem;
+    padding: 0.75rem 1rem;
     border: 1px solid #d1d5db;
     border-radius: 0.5rem;
     transition: all 0.3s ease;
+    font-size: 1rem;
 }
 
 input:focus {
     outline: none;
-    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.5);
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.5);
 }
 
 /* Avatar Section */
@@ -130,6 +142,7 @@ input:focus {
 
 .avatar.selected {
     border-color: #3b82f6;
+    transform: scale(1.1);
 }
 
 /* Submit Button */
@@ -147,6 +160,26 @@ input:focus {
 
 .submit-button:hover {
     background-color: #2563eb;
+    transform: scale(1.05);
+}
+
+/* Fullscreen Button */
+.fullscreen-button {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    background: white;
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: 0.5rem;
+    cursor: pointer;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+}
+
+.fullscreen-button:hover {
+    background: #3b82f6;
+    color: white;
 }
 
 /* Responsive Design */

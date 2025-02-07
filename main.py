@@ -131,7 +131,7 @@ def login():
             session['user'] = {
                 "username": user['username'],
                 "email": user['email'],
-                "role": user.get('role', None),
+                "role": user.get('role', ''),
                 "profile_data": user.get('profile_data', {}),
                 "firstName": user.get('firstName', ''),
                 "lastName": user.get('lastName', '')
@@ -154,11 +154,24 @@ def dashboard():
         flash('Please login first!', 'warning')
         return redirect(url_for('login'))
 
-    user = mongo.db.users.find_one({"username": session['username']})
-    if not user.get("role"):  # Jika belum menyelesaikan survey, arahkan ke survey
-        return redirect(url_for('survey'))
+    # Ambil ulang data dari database jika session['user'] kosong atau tidak lengkap
+    if 'user' not in session or not session['user'].get('role'):
+        user = mongo.db.users.find_one({"username": session['username']})
+        if not user:
+            flash("User not found, please log in again.", "error")
+            return redirect(url_for('logout'))
+        
+        # Isi ulang session['user']
+        session['user'] = {
+            "username": user['username'],
+            "email": user['email'],
+            "role": user.get('role', ''),  
+            "profile_data": user.get('profile_data', {}),  
+            "firstName": user.get('firstName', ''),  
+            "lastName": user.get('lastName', '')  
+        }
 
-    return render_template('dashboard.html', user=user)
+    return render_template('dashboard.html', user=session['user'])
 
 
 @app.route('/logout')
@@ -205,6 +218,15 @@ def submit_survey():
             'profile_data': profile_data
         }}
     )
+
+@app.errorhandler(404)
+def page_not_found(e):
+    if 'username' not in session:
+        flash("Page not found! Please login first.", "warning")
+        return redirect(url_for('login'))
+    
+    flash("Page not found!", "error")
+    return redirect(url_for('dashboard'))
 
     return jsonify({'success': True, 'redirect': url_for('dashboard')}), 200
 if __name__ == '__main__':
