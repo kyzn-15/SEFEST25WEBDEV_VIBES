@@ -272,6 +272,7 @@ def create_project():
         "bidang": bidang,
         "created_at": datetime.utcnow(),
         "created_by": session['username'],  # simpan username pembuat proyek
+        "avatar": session['user']['profile_data']['avatar'],
         "status": "open"  # status proyek, misalnya: open, in-progress, completed
     }
     
@@ -279,6 +280,54 @@ def create_project():
     mongo.db.projects.insert_one(new_project)
     flash("Project created successfully!", "success")
     return redirect(url_for('dashboard'))
+
+from bson.objectid import ObjectId
+
+@app.route('/id-project')
+def project_detail():
+    # Ambil parameter 'id' dari URL
+    project_id = request.args.get('id')
+    if not project_id:
+        flash("Project ID is missing.", "error")
+        return redirect(url_for('dashboard'))
+    
+    try:
+        # Konversi ke ObjectId dan ambil data project
+        project = mongo.db.projects.find_one({"_id": ObjectId(project_id)})
+    except Exception as e:
+        flash("Invalid project ID.", "error")
+        return redirect(url_for('dashboard'))
+    
+    if not project:
+        flash("Project not found.", "error")
+        return redirect(url_for('dashboard'))
+    
+    return render_template('project_detail.html', project=project)
+
+@app.route('/update_project', methods=['POST'])
+def update_project():
+    project_id = request.form.get('project_id')
+    title = request.form.get('title')
+    description = request.form.get('description')
+    price = request.form.get('price')
+    bidang = request.form.get('bidang')
+    status = request.form.get('status')
+    
+    # Lakukan validasi data jika perlu
+    
+    mongo.db.projects.update_one(
+        {"_id": ObjectId(project_id)},
+        {"$set": {
+            "title": title,
+            "description": description,
+            "price": float(price),
+            "bidang": bidang,
+            "status": status,
+            "updated_at": datetime.utcnow()
+        }}
+    )
+    flash("Project updated successfully!", "success")
+    return redirect(url_for('project_detail', id=project_id))
 
 if __name__ == '__main__':
     app.run(debug=True)

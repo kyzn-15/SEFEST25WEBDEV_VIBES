@@ -1,4 +1,7 @@
-.dashboard-container {
+/* ================================
+   Dashboard Container & Card
+   ================================ */
+   .dashboard-container {
     display: flex;
     flex-wrap: wrap;
     gap: 24px;
@@ -25,6 +28,9 @@
     box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
 }
 
+/* ================================
+   User Profile, Payment & Rating
+   ================================ */
 .user-profile-container {
     flex: 1;
     min-width: 300px;
@@ -37,6 +43,13 @@
     font-size: 4rem;
     margin-bottom: 24px;
     color: #4776E6;
+}
+
+.profile-icon img {
+    width: 120px; /* Sesuaikan ukuran sesuai kebutuhan */
+    height: 120px;
+    object-fit: cover;
+    border-radius: 50%;
 }
 
 .user-profile h1 {
@@ -133,91 +146,11 @@
     color: #666;
     font-size: 1.1rem;
 }
-.profile-icon img {
-    width: 120px; /* Sesuaikan ukuran sesuai kebutuhan */
-    height: 120px;
-    object-fit: cover;
-    border-radius: 50%; /* Agar berbentuk lingkaran */
-}
-
-@media (max-width: 1200px) {
-    .dashboard-container {
-        padding: 20px;
-        gap: 20px;
-    }
-
-    .card {
-        padding: 24px;
-        height: 280px;
-    }
-
-    .user-payment-container {
-        min-width: 360px;
-    }
-}
-
-@media (max-width: 768px) {
-    .dashboard-container {
-        flex-direction: column;
-        padding: 16px;
-    }
-
-    .card {
-        width: 100%;
-        min-width: unset;
-        height: auto;
-        min-height: 260px;
-    }
-
-    .user-payment-container {
-        min-width: unset;
-    }
-
-    .user-payment-desc h2 {
-        font-size: 2rem;
-    }
-
-    .user-payment-topup {
-        flex-direction: column;
-    }
-
-    .action-button {
-        width: 100%;
-        padding: 14px 20px;
-    }
-
-    .profile-icon,
-    .rating-icon {
-        font-size: 3.5rem;
-        margin-bottom: 20px;
-    }
-}
-
-@media (max-width: 480px) {
-    .dashboard-container {
-        padding: 12px;
-    }
-
-    .card {
-        padding: 20px;
-        min-height: 240px;
-    }
-
-    .user-payment-desc h2 {
-        font-size: 1.75rem;
-    }
-
-    .profile-icon,
-    .rating-icon {
-        font-size: 3rem;
-        margin-bottom: 16px;
-    }
-}
 
 /* ================================
    Ongoing Projects Section
    ================================ */
-   .ongoing-projects-container {
+.ongoing-projects-container {
     margin: 30px auto;
     max-width: 800px;
     padding: 20px;
@@ -315,6 +248,17 @@
     color: #007BFF;
     text-align: right;
     margin-top: 10px;
+    display: block;
+    text-decoration: none;
+}
+
+
+.project-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    margin-right: 10px;
+    object-fit: cover;
 }
 
 /* ================================
@@ -376,6 +320,249 @@
 
 /* ================================
    Responsif
+   ================================ */
+@media (max-width: 1200px) {
+    .dashboard-container {
+        padding: 20px;
+        gap: 20px;
+    }
+
+    .card {
+        padding: 24px;
+        height: 280px;
+    }
+
+    .user-payment-container {
+        min-width: 360px;
+    }
+}
+
+@media (max-width: 768px) {
+    .dashboard-container {
+        flex-direction: column;
+        padding: 16px;
+    }
+
+    .card {
+        width: 100%;
+        min-width: unset;
+        height: auto;
+        min-height: 260px;
+    }
+
+    .user-payment-container {
+        min-width: unset;
+    }
+
+    .user-payment-desc h2 {
+        font-size: 2rem;
+    }
+
+    .user-payment-topup {
+        flex-direction: column;
+    }
+
+    .action-button {
+        width: 100%;
+        padding: 14px 20px;
+    }
+
+    .profile-icon,
+    .rating-icon {
+        font-size: 3.5rem;
+        margin-bottom: 20px;
+    }
+}
+
+@media (max-width: 480px) {
+    .dashboard-container {
+        padding: 12px;
+    }
+
+    .card {
+        padding: 20px;
+        min-height: 240px;
+    }
+
+    .user-payment-desc h2 {
+        font-size: 1.75rem;
+    }
+
+    .profile-icon,
+    .rating-icon {
+        font-size: 3rem;
+        margin-bottom: 16px;
+    }
+}
+/* ================================
+   Ongoing Projects Section
+   ================================ */
+   .ongoing-projects-container {
+    margin: 30px auto;
+    max-width: 800px;
+    padding: 20px;
+    background-color: #fff;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
+}
+
+.ongoing-projects-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    border-bottom: 1px solid #eaeaea;
+    padding-bottom: 10px;
+}
+
+.ongoing-projects-header span {
+    font-size: 24px;
+    font-weight: 600;
+    color: #333;
+}
+
+.ongoing-projects-header a {
+    font-size: 16px;
+    color: #007BFF;
+    text-decoration: none;
+    transition: color 0.3s ease;
+}
+
+.ongoing-projects-header a:hover {
+    color: #0056b3;
+}
+
+.project-card {
+    background-color: #fefefe;
+    border: 1px solid #eaeaea;
+    border-radius: 8px;
+    padding: 20px;
+    margin-bottom: 20px;
+    transition: box-shadow 0.3s ease;
+}
+
+.project-card:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.project-title {
+    font-size: 20px;
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 8px;
+}
+
+.project-deadline {
+    font-size: 14px;
+    color: #777;
+    margin-bottom: 12px;
+}
+
+.project-industry {
+    font-size: 14px;
+    color: #555;
+    margin-bottom: 12px;
+}
+
+.project-profile {
+    display: flex;
+    align-items: center;
+    margin-bottom: 12px;
+}
+
+.project-profile img {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    margin-right: 12px;
+    object-fit: cover;
+}
+
+.project-name {
+    font-size: 16px;
+    font-weight: 500;
+    color: #333;
+}
+
+.project-stars {
+    font-size: 16px;
+    color: #ffc107;
+}
+
+.project-price {
+    font-size: 18px;
+    font-weight: 600;
+    color: #28a745;
+    margin-top: 10px;
+}
+
+.project-arrow {
+    font-size: 24px;
+    color: #007BFF;
+    text-align: right;
+    margin-top: 10px;
+}
+
+/* ================================
+   Upload Projects Section
+   ================================ */
+.upload-container {
+    margin: 30px auto;
+    max-width: 500px;
+    padding: 30px;
+    background-color: #fff;
+    border: 1px solid #ddd;
+    border-radius: 10px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    text-align: center;
+}
+
+.upload-title {
+    font-size: 24px;
+    font-weight: 600;
+    margin-bottom: 25px;
+    color: #333;
+}
+
+.upload-form {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.upload-input {
+    padding: 12px 15px;
+    font-size: 16px;
+    border: 1px solid #ccc;
+    border-radius: 25px;
+    transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.upload-input:focus {
+    outline: none;
+    border-color: #007BFF;
+    box-shadow: 0 0 8px rgba(0, 123, 255, 0.3);
+}
+
+.upload-button {
+    padding: 12px 20px;
+    font-size: 18px;
+    font-weight: 600;
+    color: #fff;
+    background: linear-gradient(135deg, #4a90e2, #357ABD);
+    border: none;
+    border-radius: 25px;
+    cursor: pointer;
+    transition: opacity 0.3s ease;
+}
+
+.upload-button:hover {
+    opacity: 0.9;
+}
+
+/* ================================
+   Responsif untuk Upload & Ongoing Projects
    ================================ */
 @media (max-width: 600px) {
     .ongoing-projects-container {

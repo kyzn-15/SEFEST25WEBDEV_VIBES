@@ -1,0 +1,118 @@
+{% extends 'layout.html' %}
+
+{% block title %}Project Detail{% endblock %}
+
+{% block css %}
+  <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/project_detail.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="project-detail-container">
+    <!-- Header Section -->
+    <div class="project-detail-header">
+        <h1>{{ project.title }}</h1>
+        <p>Created at: {{ project.created_at.strftime("%d %B %Y") if project.created_at else "N/A" }}</p>
+        <!-- Icons for Messages and Notifications -->
+        <div class="icons-container">
+            <a href="/message" class="icon-link" title="Messages"><i class='bx bxs-chat'></i></a>
+            <a href="/inbox" class="icon-link" title="Notifications"><i class='bx bxs-bell'></i></a>
+        </div>
+    </div>
+
+    <!-- Owner Information -->
+    <div class="project-owner">
+        <img class="project-avatar" src="{{ url_for('static', filename='img/' + project.get('avatar', 'default.png')) }}" alt="Owner Avatar">
+        <div class="owner-info">
+            <p><strong>Owner:</strong> {{ project.created_by }}</p>
+            {% if project.rating %}
+                <p><strong>Rating:</strong> {{ "★" * project.rating + "☆" * (5 - project.rating) }}</p>
+            {% else %}
+                <p><strong>Rating:</strong> No rating yet</p>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Project Meta Information -->
+    <div class="project-meta">
+        <p><strong>Industry:</strong> {{ project.bidang }}</p>
+        <p><strong>Price:</strong> Rp. {{ project.price }}</p>
+        <p><strong>Status:</strong> {{ project.status }}</p>
+    </div>
+
+    <!-- Project Description -->
+    <div class="project-detail-body">
+        <p><strong>Description:</strong></p>
+        <p>{{ project.description }}</p>
+    </div>
+
+    <!-- Action Buttons: Edit, Cancel, Back -->
+    <div class="action-buttons">
+        <button type="button" class="action-btn edit-btn" onclick="toggleEditForm()">Edit Project</button>
+        <a href="/cancel-project?id={{ project._id|string }}" class="action-btn cancel-btn">Cancel Project</a>
+        <a href="{{ url_for('dashboard') }}" class="back-button">Back to Dashboard</a>
+    </div>
+
+    <!-- Hidden Edit Form -->
+    <div id="editProjectContainer" class="edit-form-container" style="display: none;">
+        <h2>Edit Project</h2>
+        <form id="editProjectForm" method="POST" action="{{ url_for('update_project', project_id=project._id) }}">
+            <!-- Hidden field for Project ID -->
+            <input type="hidden" name="project_id" value="{{ project._id }}">
+            
+            <div class="form-group">
+                <label for="editTitle">Title</label>
+                <input type="text" id="editTitle" name="title" value="{{ project.title }}" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="editDescription">Description</label>
+                <textarea id="editDescription" name="description" required>{{ project.description }}</textarea>
+            </div>
+            
+            <div class="form-group">
+                <label for="editPrice">Price</label>
+                <input type="number" id="editPrice" name="price" value="{{ project.price }}" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="editIndustry">Industry</label>
+                <select id="editIndustry" name="bidang" required>
+                    <option value="">Select Industry</option>
+                    {% for industry in industries %}
+                        <option value="{{ industry }}" {% if industry == project.bidang %}selected{% endif %}>{{ industry }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label for="editStatus">Status</label>
+                <select id="editStatus" name="status" required>
+                    <option value="open" {% if project.status == 'open' %}selected{% endif %}>Open</option>
+                    <option value="in-progress" {% if project.status == 'in-progress' %}selected{% endif %}>In Progress</option>
+                    <option value="completed" {% if project.status == 'completed' %}selected{% endif %}>Completed</option>
+                </select>
+            </div>
+            
+            <div class="form-actions">
+                <button type="submit" class="action-btn edit-btn">Save Changes</button>
+                <!-- Fixed Cancel button with parentheses -->
+                <button type="button" class="back-button" onclick="toggleEditForm()">Cancel</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Toggle function for edit form visibility
+    function toggleEditForm() {
+        const editContainer = document.getElementById("editProjectContainer");
+        editContainer.style.display = 
+            editContainer.style.display === "none" || editContainer.style.display === "" 
+            ? "block" 
+            : "none";
+    }
+</script>
+{% endblock %}
