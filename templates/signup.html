@@ -31,15 +31,14 @@
                 <input type="password" name="confirm_password" placeholder="Confirm Password" required>
             </div>
         
-            {% with messages = get_flashed_messages(with_categories=true) %}
+            {% with messages = get_flashed_messages(with_categories=True) %}
                 {% if messages %}
-                    <div class="flash-messages">
-                        {% for category, message in messages %}
-                            <div class="alert alert-{{ category }}">{{ message }}</div>
-                        {% endfor %}
-                    </div>
+                    {% for category, message in messages %}
+                        <div class="alert alert-{{ category }}">{{ message }}</div>
+                    {% endfor %}
                 {% endif %}
             {% endwith %}
+
 
             <button type="submit" class="login-button">Create Account</button>
         </form>

@@ -58,7 +58,8 @@ def signup():
         flash("Registration successful! Please login.", "success")
         return redirect(url_for('login'))
 
-    return render_template('signup.html')
+    return render_template('signup.html', messages=get_flashed_messages(with_categories=True))
+
 
 @app.route('/survey', methods=['GET', 'POST'])
 def survey():
