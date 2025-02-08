@@ -219,6 +219,9 @@ def submit_survey():
         }}
     )
 
+    # **Tambahkan return statement di sini**
+    return jsonify({'success': True, 'message': 'Survey submitted successfully!'}), 200
+
 @app.errorhandler(404)
 def page_not_found(e):
     if 'username' not in session:
