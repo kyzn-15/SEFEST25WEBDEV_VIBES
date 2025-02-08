@@ -7,7 +7,11 @@
 {% block content %}
 <div class="dashboard-container">
     <div class="user-profile-container card">
-        <span class="profile-icon">👤</span>
+        <span class="profile-icon">
+            <img src="{{ url_for('static', filename='img/' + session['user']['profile_data']['avatar']) }}">
+
+        </span>
+        
         <div class="user-profile">
             <h1>{{ session['user']['firstName'] }} {{session['user']['lastName']}} </h1>
             <h2>{{ session['user']['role'] }} | {{ session['user']['profile_data']['job'] }}</h2>

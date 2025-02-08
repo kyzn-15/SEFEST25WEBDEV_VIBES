@@ -133,6 +133,12 @@
     color: #666;
     font-size: 1.1rem;
 }
+.profile-icon img {
+    width: 120px; /* Sesuaikan ukuran sesuai kebutuhan */
+    height: 120px;
+    object-fit: cover;
+    border-radius: 50%; /* Agar berbentuk lingkaran */
+}
 
 @media (max-width: 1200px) {
     .dashboard-container {
