@@ -168,24 +168,28 @@ def dashboard():
         flash('Please login first!', 'warning')
         return redirect(url_for('login'))
 
-    # Ambil ulang data dari database jika session['user'] kosong atau tidak lengkap
-    if 'user' not in session or not session['user'].get('role'):
-        user = mongo.db.users.find_one({"username": session['username']})
-        if not user:
-            flash("User not found, please log in again.", "error")
-            return redirect(url_for('logout'))
-        
-        # Isi ulang session['user']
-        session['user'] = {
-            "username": user['username'],
-            "email": user['email'],
-            "role": user.get('role', ''),  
-            "profile_data": user.get('profile_data', {}),  
-            "firstName": user.get('firstName', ''),  
-            "lastName": user.get('lastName', '')  
-        }
+    # Selalu ambil data user dari MongoDB
+    user = mongo.db.users.find_one({"username": session['username']})
+    if not user:
+        flash("User not found, please log in again.", "error")
+        return redirect(url_for('logout'))
 
-    return render_template('dashboard.html', user=session['user'])
+    # Perbarui session['user'] dengan data yang terbaru dari database
+    session['user'] = {
+        "username": user['username'],
+        "email": user['email'],
+        "role": user.get('role', ''),
+        "profile_data": user.get('profile_data', {}),
+        "firstName": user.get('firstName', ''),
+        "lastName": user.get('lastName', '')
+    }
+
+    projects = list(mongo.db.projects.find().sort("created_at", -1))
+    
+    # Ambil daftar industri unik dari data user
+    industries = mongo.db.users.distinct("profile_data.industry")
+    
+    return render_template('dashboard.html', user=session['user'], projects=projects, industries=industries)
 
 
 @app.route('/logout')
@@ -245,6 +249,36 @@ def page_not_found(e):
     flash("Page not found!", "error")
     return redirect(url_for('dashboard'))
 
-    return jsonify({'success': True, 'redirect': url_for('dashboard')}), 200
+
+@app.route('/create_project', methods=['POST'])
+def create_project():
+    if 'username' not in session:
+        flash('Please login first!', 'warning')
+        return redirect(url_for('login'))
+
+    title = request.form.get('title')
+    description = request.form.get('description')
+    price = request.form.get('price')
+    bidang = request.form.get('bidang')
+
+    if not title or not description or not price or not bidang:
+        flash("Semua field wajib diisi!", "error")
+        return redirect(url_for('dashboard'))
+
+    new_project = {
+        "title": title,
+        "description": description,
+        "price": float(price),
+        "bidang": bidang,
+        "created_at": datetime.utcnow(),
+        "created_by": session['username'],  # simpan username pembuat proyek
+        "status": "open"  # status proyek, misalnya: open, in-progress, completed
+    }
+    
+    # Masukkan data ke koleksi 'projects'
+    mongo.db.projects.insert_one(new_project)
+    flash("Project created successfully!", "success")
+    return redirect(url_for('dashboard'))
+
 if __name__ == '__main__':
     app.run(debug=True)
