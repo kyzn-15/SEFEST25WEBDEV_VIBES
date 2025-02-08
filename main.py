@@ -10,7 +10,7 @@ app.secret_key = os.urandom(24)
 app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(days=1)
 
 # Konfigurasi MongoDB
-app.config["MONGO_URI"] = "mongodb+srv://kevin:admin123@kyzn.vrph9.mongodb.net/SEFEST25WEBDEV_VIBES?retryWrites=true&w=majority&appName=Kyzn"
+app.config["MONGO_URI"] = "mongodb+srv://win:123@wcluster.nlhup.mongodb.net/wcluster?retryWrites=true&w=majority"
 
 mongo = PyMongo(app)
 
