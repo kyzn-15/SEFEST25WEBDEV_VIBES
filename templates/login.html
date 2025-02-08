@@ -28,11 +28,19 @@
 
             {% with messages = get_flashed_messages(with_categories=True) %}
                 {% if messages %}
-                    {% for category, message in messages %}
+                    {% for item in messages %}
+                        {% if item|length == 2 %}
+                            {% set category = item[0] %}
+                            {% set message = item[1] %}
+                        {% else %}
+                            {% set category = 'info' %}
+                            {% set message = item %}
+                        {% endif %}
                         <div class="alert alert-{{ category }}">{{ message }}</div>
                     {% endfor %}
                 {% endif %}
             {% endwith %}
+
 
 
             <div class="additional-links">

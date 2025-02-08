@@ -10,17 +10,20 @@ app.secret_key = os.urandom(24)
 app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(days=1)
 
 # Konfigurasi MongoDB
-app.config["MONGO_URI"] = "mongodb+srv://win:123@wcluster.nlhup.mongodb.net/mydatabase?retryWrites=true&w=majority&appName=wcluster"
+app.config["MONGO_URI"] = "mongodb+srv://kevin:admin123@kyzn.vrph9.mongodb.net/SEFEST25WEBDEV_VIBES?retryWrites=true&w=majority&appName=Kyzn"
 
 mongo = PyMongo(app)
 
 from pymongo import errors
 
 try:
+    if mongo.db is None:
+        raise Exception("mongo.db is None. Check your MongoDB URI and connection settings.")
     mongo.db.list_collection_names()
     print("MongoDB Connected Successfully")
-except errors.ServerSelectionTimeoutError as e:
+except Exception as e:
     print(f"MongoDB Connection Error: {e}")
+
 
 
 # ==================== ROUTES ====================
