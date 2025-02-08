@@ -10,8 +10,18 @@ app.secret_key = os.urandom(24)
 app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(days=1)
 
 # Konfigurasi MongoDB
-app.config["MONGO_URI"] = "mongodb://localhost:27017/friloapp"
+app.config["MONGO_URI"] = "mongodb+srv://win:123@wcluster.nlhup.mongodb.net/mydatabase?retryWrites=true&w=majority&appName=wcluster"
+
 mongo = PyMongo(app)
+
+from pymongo import errors
+
+try:
+    mongo.db.list_collection_names()
+    print("MongoDB Connected Successfully")
+except errors.ServerSelectionTimeoutError as e:
+    print(f"MongoDB Connection Error: {e}")
+
 
 # ==================== ROUTES ====================
 
