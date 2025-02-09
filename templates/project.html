@@ -1,0 +1,83 @@
+{% extends 'layout.html' %}
+
+{% block title %}
+  Projects
+{% endblock %}
+
+{% block css %}
+  <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/project.css') }}">
+{% endblock %}
+
+{% block content %}
+<div id="projects-container">
+  {% if projects|length == 0 %}
+    {% if session['user']['role'] == 'hirer' %}
+      <p>Your projects are empty.</p>
+    {% elif session['user']['role'] == 'worker' %}
+      <p>You haven't been accepted to any project yet.</p>
+    {% else %}
+      <p>No projects available.</p>
+    {% endif %}
+  {% else %}
+    {% for project in projects %}
+      <div class="project-card" onclick="redirectToProject('{{ project._id|string }}')">
+        <!-- Header: Project Title & Arrow -->
+        <div class="project-header">
+          <div class="project-title">{{ project.title }}</div>
+          <a href="/id-project?id={{ project._id|string }}" 
+             class="project-arrow" 
+             onclick="event.stopPropagation();" 
+             title="View Details">&#10132;</a>
+        </div>
+        
+        <!-- Meta Information: Created Date & Industry -->
+        <div class="project-meta">
+          <div class="project-deadline">
+            Created at: {{ project.created_at.strftime("%d %B %Y") if project.created_at else "N/A" }}
+          </div>
+          <div class="project-industry">
+            Industry: {{ project.bidang }}
+          </div>
+        </div>
+        
+        <!-- Hirer (Owner) Information -->
+        <div class="project-hirer">
+          <strong>Hirer:</strong> {{ project.created_by }}
+        </div>
+        
+        <!-- Freelancer Information -->
+        <div class="project-freelancer">
+          {% if project.accepted_freelancer %}
+            <strong>Accepted Freelancer:</strong> {{ project.accepted_freelancer }}
+          {% else %}
+            <strong>Freelancer:</strong> Not yet accepted
+          {% endif %}
+        </div>
+        
+        <!-- Additional Project Info: Rating & Price -->
+        <div class="project-info">
+          <div class="project-stars">
+            {% if project.rating %}
+              {{ "★" * project.rating + "☆" * (5 - project.rating) }}
+            {% else %}
+              ☆☆☆☆☆
+            {% endif %}
+          </div>
+          <div class="project-price">
+            Rp. {{ project.price }}
+          </div>
+        </div>
+      </div>
+    {% endfor %}
+  {% endif %}
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  // Fungsi untuk melakukan redirect ke halaman detail proyek
+  function redirectToProject(projectId) {
+    window.location.href = '/id-project?id=' + projectId;
+  }
+</script>
+{% endblock %}
