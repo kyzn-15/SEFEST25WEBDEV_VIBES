@@ -143,29 +143,34 @@
 
 {% block scripts %}
 <script>
-  // Fungsi toggle Edit Form (Hirer)
-  document.addEventListener("DOMContentLoaded", function() {
-  updateInboxCount(); // Panggil pertama kali saat halaman dimuat
-
-  // Set interval untuk update inbox setiap 10 detik
-  setInterval(updateInboxCount, 10000);
-});
-
-// Fungsi untuk update jumlah inbox secara otomatis
-function updateInboxCount() {
-  fetch('/get-inbox-count') // Pastikan ada endpoint backend untuk ini
-    .then(response => response.json())
-    .then(data => {
-      const inboxCount = data.count || 0;
-      const inboxBadge = document.getElementById('applicantCount');
+    document.addEventListener("DOMContentLoaded", function() {
+        // Panggil updateInboxCount dengan project id spesifik
+        const projectId = "{{ project._id }}";
+        updateInboxCount(projectId);
       
-      if (inboxBadge) {
-        inboxBadge.textContent = inboxCount;
-        inboxBadge.style.display = inboxCount > 0 ? 'inline-block' : 'none';
+        // Set interval untuk update inbox setiap 10 detik
+        setInterval(function() {
+          updateInboxCount(projectId);
+        }, 10000);
+      });
+      
+      // Fungsi untuk update jumlah inbox berdasarkan project id
+      function updateInboxCount(projectId) {
+        fetch('/get-inbox-count?project_id=' + encodeURIComponent(projectId))
+          .then(response => response.json())
+          .then(data => {
+            console.log("Inbox count for project", projectId, ":", data);
+            const inboxCount = data.count || 0;
+            const inboxBadge = document.getElementById('applicantCount');
+            
+            if (inboxBadge) {
+              inboxBadge.textContent = inboxCount;
+              inboxBadge.style.display = inboxCount > 0 ? 'inline-block' : 'none';
+            }
+          })
+          .catch(error => console.error('Error fetching inbox count:', error));
       }
-    })
-    .catch(error => console.error('Error fetching inbox count:', error));
-}
+      
 
 document.addEventListener("DOMContentLoaded", function() {
     window.toggleEditForm = function() {

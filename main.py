@@ -460,12 +460,28 @@ def get_applicants(project_id):
 
     return jsonify(applicants), 200
 
+from bson import ObjectId
+
 @app.route('/get-inbox-count')
 def get_inbox_count():
+    # Pastikan hanya user yang berhak dapat mengakses (misalnya, hirer yang memiliki project)
     if 'username' not in session or session['user']['role'] != 'hirer':
         return jsonify({'error': 'Unauthorized'}), 403
-    # Hitung jumlah inbox, misalnya:
-    count = applications.count_documents({"status": "pending"})
+
+    project_id = request.args.get('project_id')
+    if not project_id:
+        return jsonify({'count': 0})
+    
+    # Pastikan project ada dan dimiliki oleh user (opsional, sesuai logika aplikasi)
+    project = mongo.db.projects.find_one({"_id": ObjectId(project_id)})
+    if not project or project.get("created_by") != session['username']:
+        return jsonify({'error': 'Unauthorized'}), 403
+
+    # Misalnya, hitung jumlah aplikasi dengan status "pending" untuk project tertentu
+    count = applications.count_documents({
+        "project_id": project_id,  # Pastikan field project_id disimpan sesuai (string atau ObjectId)
+        "status": "pending"
+    })
     return jsonify({"count": count})
 
 @app.route('/update-application', methods=['POST'])
