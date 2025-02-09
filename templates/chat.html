@@ -1,218 +1,286 @@
 <!DOCTYPE html>
 <html>
-<head>
+  <head>
     <title>Chat App</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
-</head>
-<body class="bg-gray-100 h-screen flex flex-col">
+  </head>
+  <body class="bg-gray-100 h-screen flex flex-col">
     <!-- Header -->
     <header class="bg-white shadow-sm">
-        <div class="max-w-7xl mx-auto px-4 py-3 flex justify-between items-center">
-            <h1 class="text-lg sm:text-xl font-semibold text-gray-800">
-                Welcome, {{ username }} (ID: {{ user_id }})!
-            </h1>
-            <div class="flex items-center gap-4">
-                <button id="mobile-contacts-toggle" 
-                        class="md:hidden px-3 py-1 text-gray-600 hover:text-gray-800 focus:outline-none">
-                    Contacts
-                </button>
-                <a href="/logout" class="text-sm text-red-600 hover:text-red-800">Logout</a>
-            </div>
+      <div
+        class="max-w-7xl mx-auto px-4 py-3 flex justify-between items-center"
+      >
+        <h1 class="text-lg sm:text-xl font-semibold text-gray-800">
+          Welcome, {{ username }} (ID: {{ user_id }})!
+        </h1>
+        <div class="flex items-center gap-4">
+          <button
+            id="mobile-contacts-toggle"
+            class="md:hidden px-3 py-1 text-gray-600 hover:text-gray-800 focus:outline-none"
+          >
+            Contacts
+          </button>
+          <a href="/logout" class="text-sm text-red-600 hover:text-red-800"
+            >Logout</a
+          >
         </div>
+      </div>
     </header>
 
     <!-- Main Content -->
-    <div class="flex-1 max-w-7xl mx-auto w-full px-2 sm:px-4 py-4 sm:py-6 flex flex-col md:flex-row gap-4 sm:gap-6 overflow-hidden">
-        <!-- Contacts Sidebar -->
-        <div id="contacts-sidebar" class="hidden md:block w-full md:w-64 bg-white rounded-lg shadow-sm p-4 overflow-y-auto">
-            <h2 class="text-lg font-medium text-gray-800 mb-4">Contacts</h2>
-            <!-- Add Contact Form -->
-            <div class="mb-4">
-                <input type="text" id="new-contact-id" placeholder="Enter Contact ID" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
-                <button onclick="addContact()" class="mt-2 w-full px-3 py-2 bg-green-600 text-white rounded-md hover:bg-green-700">
-                    Add Contact
-                </button>
-                <p id="contact-error" class="text-red-600 text-sm mt-1"></p>
-            </div>
-            <!-- List of Added Contacts -->
-            <div class="space-y-2" id="contacts-list">
-                {% for contact in contacts %}
-                <button data-contact-username="{{ contact.contact_username }}"
-                        onclick="selectContact('{{ contact.user_id }}')" 
-                        class="w-full text-left px-4 py-2 rounded-md hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors duration-200"
-                        id="contact-{{ contact.user_id }}"
-                        data-unread="0">
-                    {{ contact.contact_username }} ({{ contact.user_id }})
-                </button>
-                {% endfor %}
-            </div>
+    <div
+      class="flex-1 max-w-7xl mx-auto w-full px-2 sm:px-4 py-4 sm:py-6 flex flex-col md:flex-row gap-4 sm:gap-6 overflow-hidden"
+    >
+      <!-- Contacts Sidebar -->
+      <div
+        id="contacts-sidebar"
+        class="hidden md:block w-full md:w-64 bg-white rounded-lg shadow-sm p-4 overflow-y-auto"
+      >
+        <h2 class="text-lg font-medium text-gray-800 mb-4">Contacts</h2>
+        <!-- Add Contact Form -->
+        <div class="mb-4">
+          <input
+            type="text"
+            id="new-contact-id"
+            placeholder="Enter Contact ID"
+            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+          />
+          <button
+            onclick="addContact()"
+            class="mt-2 w-full px-3 py-2 bg-green-600 text-white rounded-md hover:bg-green-700"
+          >
+            Add Contact
+          </button>
+          <p id="contact-error" class="text-red-600 text-sm mt-1"></p>
         </div>
+        <!-- List of Added Contacts -->
+        <div class="space-y-2" id="contacts-list">
+          {% for contact in contacts %}
+          <button
+            data-contact-username="{{ contact.contact_username }}"
+            onclick="selectContact('{{ contact.user_id }}')"
+            class="w-full text-left px-4 py-2 rounded-md hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors duration-200"
+            id="contact-{{ contact.user_id }}"
+            data-unread="0"
+          >
+            {{ contact.contact_username }} ({{ contact.user_id }})
+          </button>
+          {% endfor %}
+        </div>
+      </div>
 
-        <!-- Chat Area -->
-        <div class="flex-1 bg-white rounded-lg shadow-sm flex flex-col min-h-0">
-            <!-- Chat Header -->
-            <div class="px-4 sm:px-6 py-3 sm:py-4 border-b">
-                <h3 class="text-lg font-medium text-gray-800" id="current-chat">Select a contact to start chatting</h3>
-            </div>
-            <!-- Messages -->
-            <div class="flex-1 p-4 sm:p-6 overflow-y-auto" id="chat-history">
-                <!-- Notification banner (if needed) will appear here -->
-            </div>
-            <!-- Message Input -->
-            <div class="px-4 sm:px-6 py-3 sm:py-4 border-t bg-gray-50">
-                <div class="flex gap-2 sm:gap-4">
-                    <input type="text" id="message-input" placeholder="Type your message..." class="flex-1 px-3 sm:px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" onkeypress="if(event.key === 'Enter') sendMessage()">
-                    <button onclick="sendMessage()" class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
-                        Send
-                    </button>
-                </div>
-            </div>
+      <!-- Chat Area -->
+      <div class="flex-1 bg-white rounded-lg shadow-sm flex flex-col min-h-0">
+        <!-- Chat Header -->
+        <div class="px-4 sm:px-6 py-3 sm:py-4 border-b">
+          <h3 class="text-lg font-medium text-gray-800" id="current-chat">
+            Select a contact to start chatting
+          </h3>
         </div>
+        <!-- Messages -->
+        <div class="flex-1 p-4 sm:p-6 overflow-y-auto" id="chat-history">
+          <!-- Notification banner (if needed) will appear here -->
+        </div>
+        <!-- Message Input -->
+        <div class="px-4 sm:px-6 py-3 sm:py-4 border-t bg-gray-50">
+          <div class="flex gap-2 sm:gap-4">
+            <input
+              type="text"
+              id="message-input"
+              placeholder="Type your message..."
+              class="flex-1 px-3 sm:px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              onkeypress="if(event.key === 'Enter') sendMessage()"
+            />
+            <button
+              onclick="sendMessage()"
+              class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+            >
+              Send
+            </button>
+          </div>
+        </div>
+      </div>
     </div>
 
     <script>
-        const socket = io();
-        let currentContact = null; // ID kontak yang sedang aktif
-        let unreadNotifications = {}; // Jumlah pesan belum terbaca per kontak
+      const socket = io();
+      let currentContact = null; // ID kontak yang sedang aktif
+      let unreadNotifications = {}; // Jumlah pesan belum terbaca per kontak
 
-        // Toggle tampilan contacts untuk mobile
-        document.getElementById('mobile-contacts-toggle').addEventListener('click', function() {
-            document.getElementById('contacts-sidebar').classList.toggle('hidden');
+      // Toggle tampilan contacts untuk mobile
+      document
+        .getElementById("mobile-contacts-toggle")
+        .addEventListener("click", function () {
+          document
+            .getElementById("contacts-sidebar")
+            .classList.toggle("hidden");
         });
 
-        // Fungsi memperbarui badge notifikasi pada kontak
-        function updateContactBadge(contact_id, count) {
-            const btn = document.getElementById('contact-' + contact_id);
-            if (btn) {
-                const username = btn.getAttribute('data-contact-username');
-                const badge = count > 0 ? ` <span class="bg-red-600 text-white text-xs rounded-full px-2">${count}</span>` : '';
-                btn.innerHTML = `${username} (${contact_id})${badge}`;
-            }
+      // Fungsi memperbarui badge notifikasi pada kontak
+      function updateContactBadge(contact_id, count) {
+        const btn = document.getElementById("contact-" + contact_id);
+        if (btn) {
+          const username = btn.getAttribute("data-contact-username");
+          const badge =
+            count > 0
+              ? ` <span class="bg-red-600 text-white text-xs rounded-full px-2">${count}</span>`
+              : "";
+          btn.innerHTML = `${username} (${contact_id})${badge}`;
         }
+      }
 
-        // Terima pesan baru dari server
-        socket.on('new_message', function(data) {
-            if (data.is_me) {
-                appendMessage(data);
-                return;
-            }
-            if (currentContact && currentContact === data.sender_id) {
-                appendMessage(data);
-            } else {
-                unreadNotifications[data.sender_id] = (unreadNotifications[data.sender_id] || 0) + 1;
-                updateContactBadge(data.sender_id, unreadNotifications[data.sender_id]);
-                if (!currentContact) {
-                    const chatHistory = document.getElementById('chat-history');
-                    let banner = document.getElementById('notification-banner');
-                    if (!banner) {
-                        banner = document.createElement('div');
-                        banner.id = "notification-banner";
-                        banner.className = "text-center text-gray-600 italic mb-2";
-                        chatHistory.prepend(banner);
-                    }
-                    banner.textContent = `New message from ${data.sender}. Click the contact to view.`;
-                }
-            }
-        });
-
-        // Terima history chat dari server
-        socket.on('message_history', function(history) {
-            const chatHistory = document.getElementById('chat-history');
-            chatHistory.innerHTML = '';
-            history.forEach(appendMessage);
-            chatHistory.scrollTop = chatHistory.scrollHeight;
-        });
-
-        // Jika kontak berhasil ditambahkan, perbarui UI tanpa refresh
-        socket.on('contact_added', function(data) {
-            document.getElementById('contact-error').textContent = '';
-            document.getElementById('new-contact-id').value = '';
-            const contactsList = document.getElementById('contacts-list');
-            if (!document.getElementById('contact-' + data.contact_id)) {
-                const button = document.createElement('button');
-                button.setAttribute('data-contact-username', data.contact_username);
-                button.id = 'contact-' + data.contact_id;
-                button.onclick = function() { selectContact(data.contact_id); };
-                button.className = "w-full text-left px-4 py-2 rounded-md hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors duration-200";
-                button.innerHTML = `${data.contact_username} (${data.contact_id})`;
-                contactsList.appendChild(button);
-            }
-        });
-
-        // Terima error saat menambah kontak
-        socket.on('contact_error', function(data) {
-            document.getElementById('contact-error').textContent = data.msg;
-        });
-
-        // Fungsi untuk menambahkan kontak
-        function addContact() {
-            const contactID = document.getElementById('new-contact-id').value.trim();
-            if (contactID) {
-                socket.emit('add_contact', { contact_id: contactID });
-            }
+      // Terima pesan baru dari server
+      socket.on("new_message", function (data) {
+        if (data.is_me) {
+          appendMessage(data);
+          return;
         }
+        if (currentContact && currentContact === data.sender_id) {
+          appendMessage(data);
+        } else {
+          unreadNotifications[data.sender_id] =
+            (unreadNotifications[data.sender_id] || 0) + 1;
+          updateContactBadge(
+            data.sender_id,
+            unreadNotifications[data.sender_id]
+          );
+          if (!currentContact) {
+            const chatHistory = document.getElementById("chat-history");
+            let banner = document.getElementById("notification-banner");
+            if (!banner) {
+              banner = document.createElement("div");
+              banner.id = "notification-banner";
+              banner.className = "text-center text-gray-600 italic mb-2";
+              chatHistory.prepend(banner);
+            }
+            banner.textContent = `New message from ${data.sender}. Click the contact to view.`;
+          }
+        }
+      });
 
-        // Fungsi menampilkan pesan di chat history
-        function appendMessage(msg) {
-            const chatHistory = document.getElementById('chat-history');
-            const messageDiv = document.createElement('div');
-            messageDiv.className = `mb-4 ${msg.is_me ? 'flex justify-end' : 'flex justify-start'}`;
-            messageDiv.innerHTML = `
-                <div class="${msg.is_me ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-800'} rounded-lg px-3 sm:px-4 py-2 max-w-[85%] sm:max-w-md">
-                    <div class="font-medium ${msg.is_me ? 'text-blue-100' : 'text-gray-900'} text-sm sm:text-base">${msg.sender}</div>
-                    <div class="mt-1 text-sm sm:text-base break-words">${msg.message}</div>
-                    <div class="text-xs mt-1 ${msg.is_me ? 'text-blue-200' : 'text-gray-500'}">${msg.timestamp}</div>
+      // Terima history chat dari server
+      socket.on("message_history", function (history) {
+        const chatHistory = document.getElementById("chat-history");
+        chatHistory.innerHTML = "";
+        history.forEach(appendMessage);
+        chatHistory.scrollTop = chatHistory.scrollHeight;
+      });
+
+      // Jika kontak berhasil ditambahkan, perbarui UI tanpa refresh
+      socket.on("contact_added", function (data) {
+        document.getElementById("contact-error").textContent = "";
+        document.getElementById("new-contact-id").value = "";
+        const contactsList = document.getElementById("contacts-list");
+        if (!document.getElementById("contact-" + data.contact_id)) {
+          const button = document.createElement("button");
+          button.setAttribute("data-contact-username", data.contact_username);
+          button.id = "contact-" + data.contact_id;
+          button.onclick = function () {
+            selectContact(data.contact_id);
+          };
+          button.className =
+            "w-full text-left px-4 py-2 rounded-md hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors duration-200";
+          button.innerHTML = `${data.contact_username} (${data.contact_id})`;
+          contactsList.appendChild(button);
+        }
+      });
+
+      // Terima error saat menambah kontak
+      socket.on("contact_error", function (data) {
+        document.getElementById("contact-error").textContent = data.msg;
+      });
+
+      // Fungsi untuk menambahkan kontak
+      function addContact() {
+        const contactID = document
+          .getElementById("new-contact-id")
+          .value.trim();
+        if (contactID) {
+          socket.emit("add_contact", { contact_id: contactID });
+        }
+      }
+
+      // Fungsi menampilkan pesan di chat history
+      function appendMessage(msg) {
+        const chatHistory = document.getElementById("chat-history");
+        const messageDiv = document.createElement("div");
+        messageDiv.className = `mb-4 ${
+          msg.is_me ? "flex justify-end" : "flex justify-start"
+        }`;
+        messageDiv.innerHTML = `
+                <div class="${
+                  msg.is_me
+                    ? "bg-blue-600 text-white"
+                    : "bg-gray-100 text-gray-800"
+                } rounded-lg px-3 sm:px-4 py-2 max-w-[85%] sm:max-w-md">
+                    <div class="font-medium ${
+                      msg.is_me ? "text-blue-100" : "text-gray-900"
+                    } text-sm sm:text-base">${msg.sender}</div>
+                    <div class="mt-1 text-sm sm:text-base break-words">${
+                      msg.message
+                    }</div>
+                    <div class="text-xs mt-1 ${
+                      msg.is_me ? "text-blue-200" : "text-gray-500"
+                    }">${msg.timestamp}</div>
                 </div>
             `;
-            chatHistory.appendChild(messageDiv);
-            chatHistory.scrollTop = chatHistory.scrollHeight;
-        }
+        chatHistory.appendChild(messageDiv);
+        chatHistory.scrollTop = chatHistory.scrollHeight;
+      }
 
-        // Fungsi memilih kontak untuk chat
-        function selectContact(contact_id) {
-            currentContact = contact_id;
-            const btn = document.getElementById('contact-' + contact_id);
-            const contactName = btn.getAttribute('data-contact-username');
-            document.getElementById('current-chat').textContent = `Chat with ${contactName} (${contact_id})`;
-            unreadNotifications[contact_id] = 0;
-            updateContactBadge(contact_id, 0);
-            const banner = document.getElementById('notification-banner');
-            if (banner) { banner.remove(); }
-            document.querySelectorAll('[id^="contact-"]').forEach(btn => btn.classList.remove('bg-gray-100'));
-            btn.classList.add('bg-gray-100');
-            document.getElementById('chat-history').innerHTML = '';
-            socket.emit('get_history', { contact: contact_id });
-            // Sembunyikan sidebar di mobile
-            if (window.innerWidth < 768) {
-                document.getElementById('contacts-sidebar').classList.add('hidden');
-            }
+      // Fungsi memilih kontak untuk chat
+      function selectContact(contact_id) {
+        currentContact = contact_id;
+        const btn = document.getElementById("contact-" + contact_id);
+        const contactName = btn.getAttribute("data-contact-username");
+        document.getElementById(
+          "current-chat"
+        ).textContent = `Chat with ${contactName} (${contact_id})`;
+        unreadNotifications[contact_id] = 0;
+        updateContactBadge(contact_id, 0);
+        const banner = document.getElementById("notification-banner");
+        if (banner) {
+          banner.remove();
         }
-
-        // Fungsi mengirim pesan
-        function sendMessage() {
-            const messageInput = document.getElementById('message-input');
-            const message = messageInput.value.trim();
-            if (!currentContact) {
-                alert("Please select a contact to send a message.");
-                return;
-            }
-            if (message) {
-                socket.emit('private_message', {
-                    receiver: currentContact,
-                    message: message
-                });
-                messageInput.value = '';
-            }
+        document
+          .querySelectorAll('[id^="contact-"]')
+          .forEach((btn) => btn.classList.remove("bg-gray-100"));
+        btn.classList.add("bg-gray-100");
+        document.getElementById("chat-history").innerHTML = "";
+        socket.emit("get_history", { contact: contact_id });
+        // Sembunyikan sidebar di mobile
+        if (window.innerWidth < 768) {
+          document.getElementById("contacts-sidebar").classList.add("hidden");
         }
+      }
 
-        // Perbarui tampilan sidebar saat window diresize
-        window.addEventListener('resize', function() {
-            if (window.innerWidth >= 768) {
-                document.getElementById('contacts-sidebar').classList.remove('hidden');
-            }
-        });
+      // Fungsi mengirim pesan
+      function sendMessage() {
+        const messageInput = document.getElementById("message-input");
+        const message = messageInput.value.trim();
+        if (!currentContact) {
+          alert("Please select a contact to send a message.");
+          return;
+        }
+        if (message) {
+          socket.emit("private_message", {
+            receiver: currentContact,
+            message: message,
+          });
+          messageInput.value = "";
+        }
+      }
+
+      // Perbarui tampilan sidebar saat window diresize
+      window.addEventListener("resize", function () {
+        if (window.innerWidth >= 768) {
+          document
+            .getElementById("contacts-sidebar")
+            .classList.remove("hidden");
+        }
+      });
     </script>
-</body>
+  </body>
 </html>
