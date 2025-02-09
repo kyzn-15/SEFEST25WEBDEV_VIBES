@@ -262,10 +262,15 @@ document.addEventListener("DOMContentLoaded", function() {
       return response.json();
     })
     .then(data => {
-      // Tampilkan pesan sukses, jika diinginkan
+      // Tampilkan pesan sukses
       const flashContainer = document.getElementById('flash-messages');
       flashContainer.innerHTML = `<div class="alert alert-success" role="alert">${data.message}</div>`;
-      // Redirect ke /project setelah sukses (misalnya setelah 1 detik)
+      // Hapus badge notifikasi
+      const inboxBadge = document.getElementById('applicantCount');
+      if (inboxBadge) {
+        inboxBadge.style.display = 'none';
+      }
+      // Redirect ke /project setelah 1 detik
       setTimeout(() => {
         window.location.href = '/project';
       }, 1000);
@@ -277,6 +282,7 @@ document.addEventListener("DOMContentLoaded", function() {
     });
   }
   
+
 
   
   // Fungsi update status aplikasi (jika diperlukan)

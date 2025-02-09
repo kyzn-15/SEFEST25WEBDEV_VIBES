@@ -77,40 +77,40 @@
         <a href="#">See More</a>
     </div>
     <div id="projects-container">
-        {% if projects|length == 0 %}
-            <p>No projects available.</p>
+        {% set filtered_projects = projects | selectattr("status", "equalto", "open") | list %}
+        
+        {% if filtered_projects|length == 0 %}
+            <p>No ongoing projects available.</p>
         {% else %}
-            {% for project in projects %}
-            <!-- Tambahkan onclick pada project-card untuk redirect -->
-            <div class="project-card" onclick="redirectToProject('{{ project._id|string }}')">
-                <div class="project-title">{{ project.title }}</div>
-                <div class="project-deadline">
-                    Created at: {{ project.created_at.strftime("%d %B %Y") if project.created_at else "N/A" }}
-                </div>
-                <div class="project-industry">
-                    Industry: {{ project.bidang }}
-                </div>
-                <div class="project-profile">
-                    <img src="{{ url_for('static', filename='img/' + project.get('avatar', 'default.png')) }}" alt="Avatar" class="project-avatar">
-                    <div>
-                        <div class="project-name">{{ project.created_by }}</div>
-                        <div class="project-stars">
-                            {% if project.rating %}
-                                {{ "★" * project.rating + "☆" * (5 - project.rating) }}
-                            {% else %}
-                                ☆☆☆☆☆
-                            {% endif %}
+            {% for project in filtered_projects %}
+                <div class="project-card" onclick="redirectToProject('{{ project._id|string }}')">
+                    <div class="project-title">{{ project.title }}</div>
+                    <div class="project-deadline">
+                        Created at: {{ project.created_at.strftime("%d %B %Y") if project.created_at else "N/A" }}
+                    </div>
+                    <div class="project-industry">
+                        Industry: {{ project.bidang }}
+                    </div>
+                    <div class="project-profile">
+                        <img src="{{ url_for('static', filename='img/' + project.get('avatar', 'default.png')) }}" alt="Avatar" class="project-avatar">
+                        <div>
+                            <div class="project-name">{{ project.created_by }}</div>
+                            <div class="project-stars">
+                                {% if project.rating %}
+                                    {{ "★" * project.rating + "☆" * (5 - project.rating) }}
+                                {% else %}
+                                    ☆☆☆☆☆
+                                {% endif %}
+                            </div>
                         </div>
                     </div>
+                    <div class="project-price">Rp. {{ project.price }}</div>
+                    <a href="/id-project?id={{ project._id|string }}" class="project-arrow" onclick="event.stopPropagation();" style="cursor: pointer;">&#10132;</a>
                 </div>
-                <div class="project-price">Rp. {{ project.price }}</div>
-                <!-- Gunakan elemen <a> untuk arrow -->
-                <a href="/id-project?id={{ project._id|string }}" class="project-arrow" onclick="event.stopPropagation();" style="cursor: pointer;">&#10132;</a>
-            </div>
-            
             {% endfor %}
         {% endif %}
     </div>
+    
 </div>
 
 

@@ -1,9 +1,11 @@
 
-from flask import Flask, render_template, request, redirect, session, url_for, flash, jsonify, get_flashed_messages
+from flask import *
 from flask_pymongo import PyMongo
 from flask_socketio import SocketIO, join_room, emit
 from werkzeug.security import generate_password_hash, check_password_hash
 from datetime import datetime, timedelta
+from pymongo import MongoClient
+from bson.objectid import ObjectId
 import os
 import random
 
@@ -13,7 +15,8 @@ app.secret_key = os.urandom(24)
 app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(days=1)
 
 # Gunakan satu MongoDB URL untuk semua kebutuhan
-app.config["MONGO_URI"] = "mongodb+srv://kevin:admin123@kyzn.vrph9.mongodb.net/SEFEST25WEBDEV_VIBES?retryWrites=true&w=majority&appName=Kyzn"
+app.config["MONGO_URI"] = "mongodb+srv://win:123@wcluster.nlhup.mongodb.net/frilo?retryWrites=true&w=majority"
+
 mongo = PyMongo(app)
 
 # Inisialisasi SocketIO (dengan async_mode threading agar kompatibel)
@@ -25,6 +28,9 @@ chat_users = mongo.db.chat_users         # Untuk data profil chat (user_id, cont
 chat_messages = mongo.db.chat_messages   # Untuk menyimpan pesan chat
 # Di bagian atas file app.py tambahkan:
 applications = mongo.db.applications
+client = MongoClient("mongodb://localhost:27017/")
+db = client['project_db']
+projects_collection = db['projects']
 # Fungsi pembantu: Pastikan setiap user memiliki profil chat
 def ensure_chat_profile(username):
     chat_user = chat_users.find_one({"username": username})
@@ -416,30 +422,59 @@ def apply_project():
     
     return jsonify({'message': 'Application submitted successfully!'}), 200
 
+
+from bson.objectid import ObjectId
+
 @app.route('/accept-application', methods=['POST'])
 def accept_application():
     try:
         data = request.get_json()
         project_id = data.get('project_id')
         freelancer = data.get('freelancer')
-        status = data.get('status')
-        
-        # Lakukan logika untuk memproses penerimaan aplikasi
-        # Misalnya, update status aplikasi di database
+        status = data.get('status', 'accepted')  # Default: accepted
 
-        return jsonify({"message": f"Application accepted for {freelancer}."}), 200
+        hirer_data = session.get("user")
+        if not hirer_data:
+            return jsonify({"message": "User not logged in"}), 401
+
+        # Pastikan untuk mengambil username dari session jika session['user'] adalah dictionary.
+        hirer = hirer_data.get("username") if isinstance(hirer_data, dict) else hirer_data
+
+        # Konversi project_id ke ObjectId
+        try:
+            project_obj_id = ObjectId(project_id)
+        except Exception as e:
+            app.logger.error("Invalid project id: %s", str(e))
+            return jsonify({"message": "Invalid project id"}), 400
+
+        # Update dokumen project dengan accepted freelancer dan hirer.
+        result = mongo.db.projects.update_one(
+            {"_id": project_obj_id},
+            {"$set": {
+                "accepted_freelancer": freelancer,
+                "accepted_hirer": hirer,
+                "status": status
+            }}
+        )
+
+        # Hapus notifikasi terkait proyek. 
+        # Misalkan notifikasi disimpan dengan field 'project_id' sebagai ObjectId.
+        try:
+            notif_project_obj_id = ObjectId(project_id)
+        except Exception as e:
+            notif_project_obj_id = project_id  # Jika ternyata disimpan sebagai string
+
+        del_result = mongo.db.notifications.delete_many({"project_id": notif_project_obj_id})
+        app.logger.info("Deleted %d notifications for project %s", del_result.deleted_count, project_id)
+
+        if result.modified_count == 1:
+            return jsonify({"message": f"Application accepted for {freelancer}."}), 200
+        else:
+            app.logger.error("No document was modified. Check if the project exists or if data is already updated.")
+            return jsonify({"message": "Failed to update project."}), 500
     except Exception as e:
-        app.logger.error("Error accepting application: %s", str(e))
-        return jsonify({
-            "message": "An error occurred while accepting the application. Please try again."
-        }), 500
-  # diharapkan "accepted"
-
-    # Lakukan logika untuk mengubah status aplikasi freelancer di database
-    # Misalnya, update data aplikasi freelancer yang sesuai dengan project_id dan freelancer
-    # Jika update berhasil, kembalikan respons sukses:
-
-    return jsonify({"message": f"Application accepted for {freelancer}."}), 200
+        app.logger.error("Error in accept_application: %s", str(e))
+        return jsonify({"message": "An error occurred while accepting the application. Please try again."}), 500
 
 @app.route('/get-applicants/<project_id>')
 def get_applicants(project_id):
@@ -488,26 +523,18 @@ def get_applicants(project_id):
 
 from bson import ObjectId
 
-@app.route('/get-inbox-count')
+@app.route('/get-inbox-count', methods=['GET'])
 def get_inbox_count():
-    # Pastikan hanya user yang berhak dapat mengakses (misalnya, hirer yang memiliki project)
-    if 'username' not in session or session['user']['role'] != 'hirer':
-        return jsonify({'error': 'Unauthorized'}), 403
-
-    project_id = request.args.get('project_id')
+    project_id = request.args.get("project_id")
     if not project_id:
-        return jsonify({'count': 0})
+        return jsonify({"count": 0})
     
-    # Pastikan project ada dan dimiliki oleh user (opsional, sesuai logika aplikasi)
-    project = mongo.db.projects.find_one({"_id": ObjectId(project_id)})
-    if not project or project.get("created_by") != session['username']:
-        return jsonify({'error': 'Unauthorized'}), 403
+    try:
+        notif_project_obj_id = ObjectId(project_id)
+    except Exception as e:
+        notif_project_obj_id = project_id
 
-    # Misalnya, hitung jumlah aplikasi dengan status "pending" untuk project tertentu
-    count = applications.count_documents({
-        "project_id": project_id,  # Pastikan field project_id disimpan sesuai (string atau ObjectId)
-        "status": "pending"
-    })
+    count = mongo.db.notifications.count_documents({"project_id": notif_project_obj_id})
     return jsonify({"count": count})
 
 @app.route('/update-application', methods=['POST'])
@@ -533,6 +560,32 @@ def update_application():
     if result.modified_count > 0:
         return jsonify({'success': True}), 200
     return jsonify({'error': 'Update failed'}), 400
+
+@app.route('/project')
+def project_page():
+    # Pastikan user sudah login
+    if 'username' not in session:
+        flash("Please login first!", "warning")
+        return redirect(url_for('login'))
+    
+    # Ambil data user dari session
+    user = session.get('user', {})
+    role = user.get('role')
+
+    # Berdasarkan role, query proyek yang sesuai:
+    if role == 'hirer':
+        # Untuk hirer, tampilkan proyek yang diupload (created_by)
+        projects = list(mongo.db.projects.find({"created_by": session['username']}).sort("created_at", -1))
+    elif role == 'worker':
+        # Untuk freelancer (worker), tampilkan proyek di mana mereka sudah diterima (accepted_freelancer)
+        projects = list(mongo.db.projects.find({"accepted_freelancer": session['username']}).sort("created_at", -1))
+    else:
+        projects = []
+
+    return render_template('project.html', projects=projects)
+
+
+
 @socketio.on('connect')
 def handle_connect():
     if 'user_id' in session:
