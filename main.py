@@ -57,8 +57,17 @@ except Exception as e:
 @app.route('/homepage')
 def home():
     if 'username' in session:
-        return redirect(url_for('dashboard'))
+        return redirect('chat.html')
     return redirect(url_for('login'))
+
+@app.route('/chat')
+def chat():
+    if 'username' not in session or 'user_id' not in session:
+        print(f"Session Error: {session}")  # Debugging
+        flash("Session expired, please log in again!", "error")
+        return redirect(url_for('login'))
+
+    return render_template('chat.html', username=session['username'], user_id=session['user_id'])
 
 @app.route('/signup', methods=['GET', 'POST'])
 def signup():
@@ -470,5 +479,4 @@ def handle_add_contact(data):
 
 # ==================== MAIN ====================
 if __name__ == '__main__':
-    app.run(debug=True)
     socketio.run(app, debug=True)
