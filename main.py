@@ -1,3 +1,4 @@
+
 from flask import Flask, render_template, request, redirect, session, url_for, flash, jsonify, get_flashed_messages
 from flask_pymongo import PyMongo
 from flask_socketio import SocketIO, join_room, emit
@@ -12,7 +13,7 @@ app.secret_key = os.urandom(24)
 app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(days=1)
 
 # Gunakan satu MongoDB URL untuk semua kebutuhan
-app.config["MONGO_URI"] = "mongodb+srv://win:123@wcluster.nlhup.mongodb.net/frilo?retryWrites=true&w=majority"
+app.config["MONGO_URI"] = "mongodb+srv://kevin:admin123@kyzn.vrph9.mongodb.net/SEFEST25WEBDEV_VIBES?retryWrites=true&w=majority&appName=Kyzn"
 mongo = PyMongo(app)
 
 # Inisialisasi SocketIO (dengan async_mode threading agar kompatibel)
@@ -642,3 +643,4 @@ def handle_add_contact(data):
 # ==================== MAIN ====================
 if __name__ == '__main__':
     socketio.run(app, debug=True)
+
