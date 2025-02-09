@@ -12,7 +12,7 @@ app.secret_key = os.urandom(24)
 app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(days=1)
 
 # Gunakan satu MongoDB URL untuk semua kebutuhan
-app.config["MONGO_URI"] = "mongodb+srv://kevin:admin123@kyzn.vrph9.mongodb.net/SEFEST25WEBDEV_VIBES?retryWrites=true&w=majority&appName=Kyzn"
+app.config["MONGO_URI"] = "mongodb+srv://win:123@wcluster.nlhup.mongodb.net/frilo?retryWrites=true&w=majority"
 mongo = PyMongo(app)
 
 # Inisialisasi SocketIO (dengan async_mode threading agar kompatibel)
@@ -22,7 +22,8 @@ socketio = SocketIO(app, async_mode='threading')
 # Seluruh operasi chat menggunakan koleksi ini (di dalam database utama)
 chat_users = mongo.db.chat_users         # Untuk data profil chat (user_id, contacts, dsb.)
 chat_messages = mongo.db.chat_messages   # Untuk menyimpan pesan chat
-
+# Di bagian atas file app.py tambahkan:
+applications = mongo.db.applications
 # Fungsi pembantu: Pastikan setiap user memiliki profil chat
 def ensure_chat_profile(username):
     chat_user = chat_users.find_one({"username": username})
@@ -60,14 +61,6 @@ def home():
         return redirect('chat.html')
     return redirect(url_for('login'))
 
-@app.route('/chat')
-def chat():
-    if 'username' not in session or 'user_id' not in session:
-        print(f"Session Error: {session}")  # Debugging
-        flash("Session expired, please log in again!", "error")
-        return redirect(url_for('login'))
-
-    return render_template('chat.html', username=session['username'], user_id=session['user_id'])
 
 @app.route('/signup', methods=['GET', 'POST'])
 def signup():
@@ -275,7 +268,7 @@ def chat():
         return redirect(url_for('login'))
     
     flash("Page not found!", "error")
-    return redirect(url_for('dashboard'))
+    return render_template('chat.html')
 
 
 @app.route('/create_project', methods=['POST'])
@@ -313,14 +306,12 @@ from bson.objectid import ObjectId
 
 @app.route('/id-project')
 def project_detail():
-    # Ambil parameter 'id' dari URL
     project_id = request.args.get('id')
     if not project_id:
         flash("Project ID is missing.", "error")
         return redirect(url_for('dashboard'))
     
     try:
-        # Konversi ke ObjectId dan ambil data project
         project = mongo.db.projects.find_one({"_id": ObjectId(project_id)})
     except Exception as e:
         flash("Invalid project ID.", "error")
@@ -330,7 +321,10 @@ def project_detail():
         flash("Project not found.", "error")
         return redirect(url_for('dashboard'))
     
-    return render_template('project_detail.html', project=project)
+    # Ambil daftar industri unik dari data user
+    industries = mongo.db.users.distinct("profile_data.industry")
+    
+    return render_template('project_detail.html', project=project, industries=industries)
 
 @app.route('/update_project', methods=['POST'])
 def update_project():
@@ -370,6 +364,133 @@ def update_project():
                 })
     return render_template('chat.html', username=session['username'], user_id=session['user_id'], contacts=contacts)
 
+from bson.objectid import ObjectId
+
+@app.route('/cancel-project')
+def cancel_project():
+    # Ambil ID proyek dari parameter URL
+    project_id = request.args.get('id')
+    if not project_id:
+        flash("Project ID is missing.", "error")
+        return redirect(url_for('dashboard'))
+    
+    try:
+        # Hapus proyek dari koleksi 'projects'
+        result = mongo.db.projects.delete_one({"_id": ObjectId(project_id)})
+        if result.deleted_count > 0:
+            flash("Project canceled successfully!", "success")
+        else:
+            flash("Project not found or already canceled.", "error")
+    except Exception as e:
+        flash("An error occurred while canceling the project.", "error")
+    
+    # Kembali ke dashboard
+    return redirect(url_for('dashboard'))
+
+@app.route('/apply-project', methods=['POST'])
+def apply_project():
+    if 'username' not in session or session['user']['role'] != 'worker':
+        return jsonify({'error': 'Unauthorized'}), 403
+    
+    project_id = request.form.get('project_id')
+    freelancer_username = session['username']
+    
+    # Cek apakah user sudah pernah apply untuk project ini
+    existing = applications.find_one({
+        'project_id': project_id,
+        'freelancer': freelancer_username
+    })
+    
+    if existing:
+        # Jika sudah pernah apply, kembalikan pesan notifikasi
+        return jsonify({'message': 'You have already applied to this project!'}), 200
+    
+    # Insert data aplikasi baru
+    applications.insert_one({
+        'project_id': project_id,
+        'freelancer': freelancer_username,
+        'status': 'pending',
+        'applied_at': datetime.utcnow()
+    })
+    
+    return jsonify({'message': 'Application submitted successfully!'}), 200
+
+@app.route('/get-applicants/<project_id>')
+def get_applicants(project_id):
+    if 'username' not in session or session['user']['role'] != 'hirer':
+        return jsonify({'error': 'Unauthorized'}), 403
+
+    # Verifikasi pemilik proyek
+    project = mongo.db.projects.find_one({'_id': ObjectId(project_id)})
+    if not project or project['created_by'] != session['username']:
+        return jsonify({'error': 'Project not found or unauthorized'}), 404
+
+    applicants = list(applications.aggregate([
+        {'$match': {'project_id': project_id}},
+        {'$lookup': {
+            'from': 'users',
+            'localField': 'freelancer',
+            'foreignField': 'username',
+            'as': 'user'
+        }},
+        {'$unwind': '$user'},
+        {'$project': {
+            'freelancer': 1,
+            'status': 1,
+            'applied_at': 1,
+            'username': '$user.username',
+            'email': '$user.email',
+            'role': '$user.role',
+            'profile_data': '$user.profile_data',
+            'firstName': {
+                '$ifNull': [
+                    '$user.firstName',
+                    { '$ifNull': [ '$user.profile_data.firstName', 'No First Name' ] }
+                ]
+            },
+            'lastName': {
+                '$ifNull': [
+                    '$user.lastName',
+                    { '$ifNull': [ '$user.profile_data.lastName', 'No Last Name' ] }
+                ]
+            },
+            'projects': {'$ifNull': [{'$size': {'$ifNull': ['$user.projects', []]}}, 0]}
+        }}
+    ]))
+
+    return jsonify(applicants), 200
+
+@app.route('/get-inbox-count')
+def get_inbox_count():
+    if 'username' not in session or session['user']['role'] != 'hirer':
+        return jsonify({'error': 'Unauthorized'}), 403
+    # Hitung jumlah inbox, misalnya:
+    count = applications.count_documents({"status": "pending"})
+    return jsonify({"count": count})
+
+@app.route('/update-application', methods=['POST'])
+def update_application():
+    if 'username' not in session or session['user']['role'] != 'hirer':
+        return jsonify({'error': 'Unauthorized'}), 403
+    
+    data = request.json
+    project_id = data.get('project_id')
+    freelancer = data.get('freelancer')
+    
+    # Verify project ownership
+    project = mongo.db.projects.find_one({'_id': ObjectId(project_id)})
+    if not project or project['created_by'] != session['username']:
+        return jsonify({'error': 'Unauthorized'}), 403
+    
+    # Update application status
+    result = applications.update_one(
+        {'project_id': project_id, 'freelancer': freelancer},
+        {'$set': {'status': data.get('status')}}
+    )
+    
+    if result.modified_count > 0:
+        return jsonify({'success': True}), 200
+    return jsonify({'error': 'Update failed'}), 400
 @socketio.on('connect')
 def handle_connect():
     if 'user_id' in session:

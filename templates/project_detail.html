@@ -1,6 +1,8 @@
 {% extends 'layout.html' %}
 
-{% block title %}Project Detail{% endblock %}
+{% block title %}
+  Project Detail
+{% endblock %}
 
 {% block css %}
   <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/project_detail.css') }}">
@@ -8,111 +10,264 @@
 
 {% block content %}
 <div class="project-detail-container">
-    <!-- Header Section -->
-    <div class="project-detail-header">
-        <h1>{{ project.title }}</h1>
-        <p>Created at: {{ project.created_at.strftime("%d %B %Y") if project.created_at else "N/A" }}</p>
-        <!-- Icons for Messages and Notifications -->
-        <div class="icons-container">
-            <a href="/message" class="icon-link" title="Messages"><i class='bx bxs-chat'></i></a>
-            <a href="/inbox" class="icon-link" title="Notifications"><i class='bx bxs-bell'></i></a>
-        </div>
-    </div>
+  <!-- Container Flash Messages -->
+  <div id="flash-messages">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        {% for category, message in messages %}
+          <div class="alert alert-{{ category }}" role="alert">{{ message }}</div>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+  </div>
 
-    <!-- Owner Information -->
-    <div class="project-owner">
-        <img class="project-avatar" src="{{ url_for('static', filename='img/' + project.get('avatar', 'default.png')) }}" alt="Owner Avatar">
-        <div class="owner-info">
-            <p><strong>Owner:</strong> {{ project.created_by }}</p>
-            {% if project.rating %}
-                <p><strong>Rating:</strong> {{ "★" * project.rating + "☆" * (5 - project.rating) }}</p>
-            {% else %}
-                <p><strong>Rating:</strong> No rating yet</p>
-            {% endif %}
-        </div>
+  <!-- Header Section -->
+  <div class="project-detail-header">
+    <h1>{{ project.title }}</h1>
+    <p>Created at: {{ project.created_at.strftime("%d %B %Y") if project.created_at else "N/A" }}</p>
+    <!-- Icons: Chat (untuk semua) & Bell (hanya untuk hirer) -->
+    <div class="icons-container">
+      <a href="/message" class="icon-link" title="Messages">
+        <i class='bx bxs-chat'></i>
+      </a>
+      {% if session['user']['role'] == 'hirer' %}
+        <button class="icon-link" title="View Applicants" onclick="loadApplicants('{{ project._id }}')">
+          <i class='bx bxs-bell'></i>
+          <span class="badge" id="applicantCount">0</span>
+        </button>
+      {% endif %}
     </div>
+  </div>
 
-    <!-- Project Meta Information -->
-    <div class="project-meta">
-        <p><strong>Industry:</strong> {{ project.bidang }}</p>
-        <p><strong>Price:</strong> Rp. {{ project.price }}</p>
-        <p><strong>Status:</strong> {{ project.status }}</p>
+  <!-- Owner Information -->
+  <div class="project-owner">
+    <img class="project-avatar" src="{{ url_for('static', filename='img/' + project.get('avatar', 'default.png')) }}" alt="Owner Avatar">
+    <div class="owner-info">
+      <p><strong>Owner:</strong> {{ project.created_by }}</p>
+      {% if project.rating %}
+        <p><strong>Rating:</strong> {{ "★" * project.rating + "☆" * (5 - project.rating) }}</p>
+      {% else %}
+        <p><strong>Rating:</strong> No rating yet</p>
+      {% endif %}
     </div>
+  </div>
 
-    <!-- Project Description -->
-    <div class="project-detail-body">
-        <p><strong>Description:</strong></p>
-        <p>{{ project.description }}</p>
-    </div>
+  <!-- Project Meta Information -->
+  <div class="project-meta">
+    <p><strong>Industry:</strong> {{ project.get('bidang', 'Not specified') }}</p>
+    <p><strong>Price:</strong> Rp. {{ project.price }}</p>
+    <p><strong>Status:</strong> {{ project.status }}</p>
+  </div>
 
-    <!-- Action Buttons: Edit, Cancel, Back -->
+  <!-- Project Description -->
+  <div class="project-detail-body">
+    <p><strong>Description:</strong></p>
+    <p>{{ project.description }}</p>
+  </div>
+
+  <!-- Action Buttons -->
+  {% if session['user']['role'] == 'hirer' %}
     <div class="action-buttons">
-        <button type="button" class="action-btn edit-btn" onclick="toggleEditForm()">Edit Project</button>
-        <a href="/cancel-project?id={{ project._id|string }}" class="action-btn cancel-btn">Cancel Project</a>
-        <a href="{{ url_for('dashboard') }}" class="back-button">Back to Dashboard</a>
+      <button type="button" class="action-btn edit-btn" onclick="toggleEditForm()">Edit Project</button>
+      <a href="/cancel-project?id={{ project._id|string }}" class="action-btn cancel-btn">Cancel Project</a>
+      <a href="{{ url_for('dashboard') }}" class="back-button">Back to Dashboard</a>
     </div>
+  {% elif session['user']['role'] == 'worker' %}
+    <div class="action-buttons">
+      <button type="button" class="action-btn apply-btn" onclick="applyProject('{{ project._id }}')">Apply</button>
+      <a href="{{ url_for('dashboard') }}" class="back-button">Back to Dashboard</a>
+    </div>
+  {% endif %}
 
-    <!-- Hidden Edit Form -->
-    <div id="editProjectContainer" class="edit-form-container" style="display: none;">
-        <h2>Edit Project</h2>
-        <form id="editProjectForm" method="POST" action="{{ url_for('update_project', project_id=project._id) }}">
-            <!-- Hidden field for Project ID -->
-            <input type="hidden" name="project_id" value="{{ project._id }}">
-            
-            <div class="form-group">
-                <label for="editTitle">Title</label>
-                <input type="text" id="editTitle" name="title" value="{{ project.title }}" required>
-            </div>
-            
-            <div class="form-group">
-                <label for="editDescription">Description</label>
-                <textarea id="editDescription" name="description" required>{{ project.description }}</textarea>
-            </div>
-            
-            <div class="form-group">
-                <label for="editPrice">Price</label>
-                <input type="number" id="editPrice" name="price" value="{{ project.price }}" required>
-            </div>
-            
-            <div class="form-group">
-                <label for="editIndustry">Industry</label>
-                <select id="editIndustry" name="bidang" required>
-                    <option value="">Select Industry</option>
-                    {% for industry in industries %}
-                        <option value="{{ industry }}" {% if industry == project.bidang %}selected{% endif %}>{{ industry }}</option>
-                    {% endfor %}
-                </select>
-            </div>
-            
-            <div class="form-group">
-                <label for="editStatus">Status</label>
-                <select id="editStatus" name="status" required>
-                    <option value="open" {% if project.status == 'open' %}selected{% endif %}>Open</option>
-                    <option value="in-progress" {% if project.status == 'in-progress' %}selected{% endif %}>In Progress</option>
-                    <option value="completed" {% if project.status == 'completed' %}selected{% endif %}>Completed</option>
-                </select>
-            </div>
-            
-            <div class="form-actions">
-                <button type="submit" class="action-btn edit-btn">Save Changes</button>
-                <!-- Fixed Cancel button with parentheses -->
-                <button type="button" class="back-button" onclick="toggleEditForm()">Cancel</button>
-            </div>
-        </form>
+  <!-- Modal Popup Notifikasi Bell (Hirer Only) -->
+  {% if session['user']['role'] == 'hirer' %}
+  <div id="applicantsModal" class="modal">
+    <div class="modal-content">
+      <span class="close" onclick="closeModal()">&times;</span>
+      <h3>Applicants for this Project</h3>
+      <div id="applicantsList">
+        <!-- Kartu applicant akan di-generate oleh JavaScript -->
+      </div>
     </div>
+  </div>
+
+  <!-- Edit Project Form -->
+  <div id="editProjectContainer" class="edit-form-container" style="display: none;">
+    <h2>Edit Project</h2>
+    <form id="editProjectForm" method="POST" action="{{ url_for('update_project', project_id=project._id) }}">
+      <input type="hidden" name="project_id" value="{{ project._id }}">
+      
+      <div class="form-group">
+        <label for="editTitle">Title</label>
+        <input type="text" id="editTitle" name="title" value="{{ project.title }}" required>
+      </div>
+      
+      <div class="form-group">
+        <label for="editDescription">Description</label>
+        <textarea id="editDescription" name="description" required>{{ project.description }}</textarea>
+      </div>
+      
+      <div class="form-group">
+        <label for="editPrice">Price</label>
+        <input type="number" id="editPrice" name="price" value="{{ project.price }}" required>
+      </div>
+      
+      <div class="form-group">
+        <label for="editIndustry">Industry</label>
+        <select id="editIndustry" name="bidang" required>
+          <option value="">Select Industry</option>
+          {% for industry in industries %}
+            <option value="{{ industry }}" {% if industry == project.get('bidang') %}selected{% endif %}>{{ industry }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      
+      <div class="form-group">
+        <label for="editStatus">Status</label>
+        <select id="editStatus" name="status" required>
+          <option value="open" {% if project.status == 'open' %}selected{% endif %}>Open</option>
+          <option value="in-progress" {% if project.status == 'in-progress' %}selected{% endif %}>In Progress</option>
+          <option value="completed" {% if project.status == 'completed' %}selected{% endif %}>Completed</option>
+        </select>
+      </div>
+      
+      <div class="form-actions">
+        <button type="submit" class="action-btn edit-btn">Save Changes</button>
+        <button type="button" class="back-button" onclick="toggleEditForm()">Cancel</button>
+      </div>
+    </form>
+  </div>
+  {% endif %}
 </div>
-
 {% endblock %}
 
 {% block scripts %}
 <script>
-    // Toggle function for edit form visibility
-    function toggleEditForm() {
-        const editContainer = document.getElementById("editProjectContainer");
-        editContainer.style.display = 
-            editContainer.style.display === "none" || editContainer.style.display === "" 
-            ? "block" 
-            : "none";
-    }
+  // Fungsi toggle Edit Form (Hirer)
+  document.addEventListener("DOMContentLoaded", function() {
+  updateInboxCount(); // Panggil pertama kali saat halaman dimuat
+
+  // Set interval untuk update inbox setiap 10 detik
+  setInterval(updateInboxCount, 10000);
+});
+
+// Fungsi untuk update jumlah inbox secara otomatis
+function updateInboxCount() {
+  fetch('/get-inbox-count') // Pastikan ada endpoint backend untuk ini
+    .then(response => response.json())
+    .then(data => {
+      const inboxCount = data.count || 0;
+      const inboxBadge = document.getElementById('applicantCount');
+      
+      if (inboxBadge) {
+        inboxBadge.textContent = inboxCount;
+        inboxBadge.style.display = inboxCount > 0 ? 'inline-block' : 'none';
+      }
+    })
+    .catch(error => console.error('Error fetching inbox count:', error));
+}
+
+document.addEventListener("DOMContentLoaded", function() {
+    window.toggleEditForm = function() {
+      var editContainer = document.getElementById("editProjectContainer");
+      if (!editContainer) return;
+      editContainer.style.display = (editContainer.style.display === "none" || editContainer.style.display === "") ? "block" : "none";
+    };
+  });
+
+
+  // Fungsi untuk Apply Project via AJAX (Worker)
+  function applyProject(projectId) {
+    var btn = document.querySelector('.apply-btn');
+    btn.disabled = true;
+    fetch('/apply-project', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: 'project_id=' + encodeURIComponent(projectId)
+    })
+    .then(response => response.json())
+    .then(data => {
+      var flashContainer = document.getElementById('flash-messages');
+      flashContainer.innerHTML = '<div class="alert alert-success" role="alert">' + data.message + '</div>';
+      btn.innerText = "Application Sent";
+    })
+    .catch(error => {
+      console.error('Error:', error);
+      var flashContainer = document.getElementById('flash-messages');
+      flashContainer.innerHTML = '<div class="alert alert-danger" role="alert">An error occurred. Please try again.</div>';
+      btn.disabled = false;
+    });
+  }
+
+  // Fungsi Load Applicants dan tampilkan data user lengkap (Hirer)
+  window.loadApplicants = function(projectId) {
+    fetch(`/get-applicants/${projectId}`)
+      .then(response => response.json())
+      .then(data => {
+        const list = document.getElementById('applicantsList');
+        list.innerHTML = '';
+        data.forEach(applicant => {
+          const firstName = applicant.firstName || 'N/A';
+          const lastName = applicant.lastName || 'N/A';
+          const avatar = (applicant.profile_data && applicant.profile_data.avatar) 
+            ? `/static/img/${applicant.profile_data.avatar}` 
+            : '/static/img/default.png';
+  
+          const applicantHTML = `
+            <div class="applicant-card">
+              <div class="applicant-info">
+                <img class="applicant-avatar" src="${avatar}" alt="Avatar">
+                <div class="applicant-details">
+                  <h4>${ applicant.username }</h4>
+                  <p>Email: ${ applicant.email }</p>
+                  <p>Role: ${ applicant.role }</p>
+                  <p>Name: ${ firstName } ${ lastName }</p>
+                  <p>Projects: ${ applicant.projects ? applicant.projects.length : 0 }</p>
+                </div>
+              </div>
+              <div class="applicant-actions">
+                <button class="action-btn chat-btn" title="Chat" onclick="startChat('${ applicant.username }')">
+                  <i class='bx bxs-chat'></i>
+                </button>
+              </div>
+            </div>
+          `;
+          list.innerHTML += applicantHTML;
+        });
+        document.getElementById('applicantsModal').style.display = 'block';
+        updateApplicantCount(data.length);
+      });
+  };
+  
+  
+  // Fungsi update status aplikasi (jika diperlukan)
+  window.updateApplication = function(projectId, freelancer, status) {
+    fetch('/update-application', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ project_id: projectId, freelancer: freelancer, status: status })
+    })
+    .then(response => {
+      if (response.ok) {
+        loadApplicants(projectId);
+      }
+    });
+  };
+
+  // Fungsi untuk menutup modal popup (Hirer)
+  window.closeModal = function() {
+    document.getElementById('applicantsModal').style.display = 'none';
+  };
+
+  // Fungsi untuk mengupdate badge count pada ikon bell
+  window.updateApplicantCount = function(count) {
+    document.getElementById('applicantCount').textContent = count;
+  };
+
+  // Fungsi untuk memulai chat dengan user (menampilkan notifikasi flash)
+  window.startChat = function(username) {
+    var flashContainer = document.getElementById('flash-messages');
+    flashContainer.innerHTML = '<div class="alert alert-info" role="alert">Chat initiated with ' + username + '</div>';
+  };
 </script>
 {% endblock %}
