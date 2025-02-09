@@ -40,14 +40,34 @@ def ensure_chat_profile(username):
         chat_user = chat_users.find_one({"username": username})
     return chat_user
 
+from pymongo import errors
+
+try:
+    if mongo.db is None:
+        raise Exception("mongo.db is None. Check your MongoDB URI and connection settings.")
+    mongo.db.list_collection_names()
+    print("MongoDB Connected Successfully")
+except Exception as e:
+    print(f"MongoDB Connection Error: {e}")
+
+
+
 # ==================== ROUTES UTAMA (Login, Signup, Survey, Dashboard, dsb.) ====================
 @app.route('/')
 @app.route('/homepage')
 def home():
     if 'username' in session:
-        # Jika sudah login, tampilkan homepage (bukan langsung redirect ke dashboard)
-        return render_template('homepage.html')
+        return redirect('chat.html')
     return redirect(url_for('login'))
+
+@app.route('/chat')
+def chat():
+    if 'username' not in session or 'user_id' not in session:
+        print(f"Session Error: {session}")  # Debugging
+        flash("Session expired, please log in again!", "error")
+        return redirect(url_for('login'))
+
+    return render_template('chat.html', username=session['username'], user_id=session['user_id'])
 
 @app.route('/signup', methods=['GET', 'POST'])
 def signup():
@@ -109,11 +129,15 @@ def survey():
             "job": job or "Not specified",
             "avatar": avatar or "default.png"
         })
+
+        # Update MongoDB with the survey data
         mongo.db.users.update_one(
             {"username": session['username']},
             {"$set": {"role": role, "profile_data": profile_data}}
         )
         flash("Survey completed successfully!", "success")
+        
+        # Redirect to the dashboard after survey submission
         return redirect(url_for('dashboard'))
     return render_template('survey.html', user=user)
 
@@ -152,6 +176,29 @@ def dashboard():
     if 'username' not in session:
         flash('Please login first!', 'warning')
         return redirect(url_for('login'))
+
+    # Selalu ambil data user dari MongoDB
+    user = mongo.db.users.find_one({"username": session['username']})
+    if not user:
+        flash("User not found, please log in again.", "error")
+        return redirect(url_for('logout'))
+
+    # Perbarui session['user'] dengan data yang terbaru dari database
+    session['user'] = {
+        "username": user['username'],
+        "email": user['email'],
+        "role": user.get('role', ''),
+        "profile_data": user.get('profile_data', {}),
+        "firstName": user.get('firstName', ''),
+        "lastName": user.get('lastName', '')
+    }
+
+    projects = list(mongo.db.projects.find().sort("created_at", -1))
+    
+    # Ambil daftar industri unik dari data user
+    industries = mongo.db.users.distinct("profile_data.industry")
+    
+    return render_template('dashboard.html', user=session['user'], projects=projects, industries=industries)
     # Perbarui data user jika perlu
     if 'user' not in session or not session['user'].get('role'):
         user = mongo.db.users.find_one({"username": session['username']})
@@ -191,13 +238,19 @@ def submit_survey():
     avatar = data.get('avatar')
     first_name = data.get('firstName')
     last_name = data.get('lastName')
+
+    # Basic validation
     if not role:
         return jsonify({'error': 'Role is required'}), 400
+
+    # Prepare profile data
     profile_data = {
         'industry': industry or 'Not specified',
         'job': job or 'Not specified',
         'avatar': avatar or 'default.png'
     }
+
+    # Update user document in MongoDB
     mongo.db.users.update_one(
         {'username': session['username']},
         {'$set': {
@@ -207,6 +260,8 @@ def submit_survey():
             'profile_data': profile_data
         }}
     )
+
+    # **Tambahkan return statement di sini**
     return jsonify({'success': True, 'message': 'Survey submitted successfully!'}), 200
 
 @app.errorhandler(404)
@@ -218,7 +273,91 @@ def page_not_found(e):
 def chat():
     if 'username' not in session or 'user_id' not in session:
         return redirect(url_for('login'))
-    # Ambil data profil chat user dan daftar kontak dari koleksi chat_users
+    
+    flash("Page not found!", "error")
+    return redirect(url_for('dashboard'))
+
+
+@app.route('/create_project', methods=['POST'])
+def create_project():
+    if 'username' not in session:
+        flash('Please login first!', 'warning')
+        return redirect(url_for('login'))
+
+    title = request.form.get('title')
+    description = request.form.get('description')
+    price = request.form.get('price')
+    bidang = request.form.get('bidang')
+
+    if not title or not description or not price or not bidang:
+        flash("Semua field wajib diisi!", "error")
+        return redirect(url_for('dashboard'))
+
+    new_project = {
+        "title": title,
+        "description": description,
+        "price": float(price),
+        "bidang": bidang,
+        "created_at": datetime.utcnow(),
+        "created_by": session['username'],  # simpan username pembuat proyek
+        "avatar": session['user']['profile_data']['avatar'],
+        "status": "open"  # status proyek, misalnya: open, in-progress, completed
+    }
+    
+    # Masukkan data ke koleksi 'projects'
+    mongo.db.projects.insert_one(new_project)
+    flash("Project created successfully!", "success")
+    return redirect(url_for('dashboard'))
+
+from bson.objectid import ObjectId
+
+@app.route('/id-project')
+def project_detail():
+    # Ambil parameter 'id' dari URL
+    project_id = request.args.get('id')
+    if not project_id:
+        flash("Project ID is missing.", "error")
+        return redirect(url_for('dashboard'))
+    
+    try:
+        # Konversi ke ObjectId dan ambil data project
+        project = mongo.db.projects.find_one({"_id": ObjectId(project_id)})
+    except Exception as e:
+        flash("Invalid project ID.", "error")
+        return redirect(url_for('dashboard'))
+    
+    if not project:
+        flash("Project not found.", "error")
+        return redirect(url_for('dashboard'))
+    
+    return render_template('project_detail.html', project=project)
+
+@app.route('/update_project', methods=['POST'])
+def update_project():
+    project_id = request.form.get('project_id')
+    title = request.form.get('title')
+    description = request.form.get('description')
+    price = request.form.get('price')
+    bidang = request.form.get('bidang')
+    status = request.form.get('status')
+    
+    # Lakukan validasi data jika perlu
+    
+    mongo.db.projects.update_one(
+        {"_id": ObjectId(project_id)},
+        {"$set": {
+            "title": title,
+            "description": description,
+            "price": float(price),
+            "bidang": bidang,
+            "status": status,
+            "updated_at": datetime.utcnow()
+        }}
+    )
+    flash("Project updated successfully!", "success")
+    return redirect(url_for('project_detail', id=project_id))
+
+# Ambil data profil chat user dan daftar kontak dari koleksi chat_users
     chat_user = chat_users.find_one({'user_id': session['user_id']})
     contacts = []
     if chat_user and 'contacts' in chat_user:
