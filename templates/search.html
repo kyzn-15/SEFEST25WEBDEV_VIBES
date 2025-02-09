@@ -1,0 +1,158 @@
+{% extends 'layout.html' %} {% block title %}Dashboard{% endblock %} {% block
+css %}
+<link
+  rel="stylesheet"
+  type="text/css"
+  href="{{ url_for('static', filename='css/search.css') }}"
+/>
+{% endblock %} {% block content %}
+<div class="projectsContainer">
+  <span class="discover">Discover Projects</span>
+
+  <div class="project-search-box">
+    <input type="text" placeholder="Search for Project" onkeyup="toSearch()" />
+  </div>
+
+  <div class="project-tabs">
+    <button class="projectButtons active" onclick="changeButtons(0)">
+      Best Match
+    </button>
+    <button class="projectButtons" onclick="changeButtons(1)">
+      Newest Post
+    </button>
+  </div>
+
+  <div class="project-list"></div>
+</div>
+{% endblock %} {% block scripts %}
+<script>
+  let projbuts = document.body.querySelectorAll(".projectButtons");
+  let defaultCond = 0;
+  function changeButtons(x) {
+    projlistcon.innerHTML = "";
+    for (i in projbuts) {
+      projbuts[i].className = "projectButtons";
+    }
+    projbuts[x].className += " active";
+
+    if (x == 0) {
+      sorted_projlist = projlist;
+    } else {
+      sort_projects();
+    }
+    for (h in sorted_projlist) {
+      render_project(h);
+    }
+  }
+
+  let projlistcon = document.body.querySelector(".project-list");
+
+  let projlist = [
+    {
+      name: "Kevin Wilbert Johan",
+      stars: 4.2,
+      hours: 5,
+      title: "Optimasi SEO dan Kecepatan Website E-Commerce",
+      min: "5.000.000",
+      max: "10.000.000",
+      tags: ["website", "economic"],
+    },
+    {
+      name: "Winson Lie",
+      stars: 3.3,
+      hours: 2,
+      title: "Bantu cari nigga buat kerja paksa",
+      min: "1.000",
+      max: "10.000",
+      tags: ["slavery", "nigger"],
+    },
+    {
+      name: "Jenson Phang",
+      stars: 4.8,
+      hours: 235,
+      title: "Plis bantu backend",
+      min: "12.000.000",
+      max: "22.000.000",
+      tags: ["website", "backend"],
+    },
+  ];
+
+  let sorted_projlist = projlist;
+
+  function render_project(num) {
+    projlistcon.innerHTML += `
+        <div class = "border-bg">
+          <div class="project-card">
+          <div class="project-profile">
+            <img src="{{ url_for('static', filename='img/avatar1.jpg') }}" alt="Profile Picture" />
+            <div>
+              <div class="project-name">${sorted_projlist[num].name}</div>
+              <div class="project-stars">${returnStars(
+                sorted_projlist[num].stars
+              )}</div>
+            </div>
+            <div class="project-time">${returnTime(
+              sorted_projlist[num].hours
+            )}</div>
+          </div>
+
+          <div class="project-title">${sorted_projlist[num].title}</div>
+          <div class="project-budget">
+            Budget: Rp. ${sorted_projlist[num].min} - Rp. ${
+      sorted_projlist[num].max
+    }
+          </div>
+        </div>
+      </div>
+      </div>`;
+  }
+  function sort_projects() {
+    sorted_projlist = [];
+    let sortedProjects = [...projlist].sort((a, b) => a.hours - b.hours); // Sort by hours (ascending)
+    sortedProjects.forEach((project, index) =>
+      sorted_projlist.push(projlist[projlist.indexOf(project)])
+    );
+  }
+
+  function toSearch() {
+    let searchInput = document.querySelector(".project-search-box input");
+    if (searchInput != "") {
+      projlistcon.innerHTML = "";
+      let filter = searchInput.value.toUpperCase();
+      for (proj in sorted_projlist) {
+        let allTags = "";
+        for (tag in sorted_projlist[proj].tags) {
+          allTags += sorted_projlist[proj].tags[tag];
+        }
+        if (
+          sorted_projlist[proj].name.toUpperCase().indexOf(filter) > -1 ||
+          sorted_projlist[proj].title.toUpperCase().indexOf(filter) > -1 ||
+          allTags.toUpperCase().indexOf(filter) > -1
+        ) {
+          render_project(proj);
+        }
+      }
+    }
+  }
+  function returnTime(h) {
+    if (h < 1) {
+      return "less than an hour ago";
+    } else if (h < 24) {
+      return Math.floor(h) + "h ago";
+    } else if (h < 720) {
+      return Math.floor(h / 24) + "d ago";
+    } else {
+      return Math.floor(h / 720) + "m ago";
+    }
+  }
+  function returnStars(f) {
+    return (
+      "⭐".repeat(Math.floor(f + 0.2)) +
+      "☆".repeat(5 - Math.floor(f + 0.2)) +
+      " " +
+      f
+    );
+  }
+  changeButtons(0);
+</script>
+{% endblock %}

@@ -1,14 +1,15 @@
 <!DOCTYPE html>
 <html>
+  {% extends 'layout.html' %} {% block title %}Chat App{% endblock %} {% block
+  content %}
   <head>
-    <title>Chat App</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
   </head>
   <body class="bg-gray-100 h-screen flex flex-col">
     <!-- Header -->
-    <header class="bg-white shadow-sm">
+    <header class="bg-white shadow-sm" style="margin-top: 10vh">
       <div
         class="max-w-7xl mx-auto px-4 py-3 flex justify-between items-center"
       >
@@ -22,9 +23,6 @@
           >
             Contacts
           </button>
-          <a href="/logout" class="text-sm text-red-600 hover:text-red-800"
-            >Logout</a
-          >
         </div>
       </div>
     </header>
@@ -103,7 +101,7 @@
         </div>
       </div>
     </div>
-
+    {% endblock %} {% block scripts %}
     <script>
       const socket = io();
       let currentContact = null; // ID kontak yang sedang aktif
@@ -282,5 +280,6 @@
         }
       });
     </script>
+    {% endblock %}
   </body>
 </html>

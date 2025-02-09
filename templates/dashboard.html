@@ -1,131 +1,157 @@
-{% extends 'layout.html' %}
-
-{% block title %}Dashboard{% endblock %}
-{% block css %}
-    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/dashboard.css') }}">
-{% endblock %}
-
-{% block content %}
+{% extends 'layout.html' %} {% block title %}Dashboard{% endblock %} {% block
+css %}
+<link
+  rel="stylesheet"
+  type="text/css"
+  href="{{ url_for('static', filename='css/dashboard.css') }}"
+/>
+{% endblock %} {% block content %}
 <div class="dashboard-container">
-    <!-- Bagian Profil Pengguna -->
-    <div class="user-profile-container card">
-        <span class="profile-icon">
-            <img src="{{ url_for('static', filename='img/' + session['user']['profile_data']['avatar']) }}" alt="Avatar">
-        </span>
-        <div class="user-profile">
-            <h1>{{ session['user']['firstName'] }} {{ session['user']['lastName'] }}</h1>
-            <h2>{{ session['user']['role'] }} | {{ session['user']['profile_data']['job'] }}</h2>
-        </div>
+  <!-- Bagian Profil Pengguna -->
+  <div class="user-profile-container card">
+    <span class="profile-icon">
+      <img
+        src="{{ url_for('static', filename='img/' + session['user']['profile_data']['avatar']) }}"
+        alt="Avatar"
+      />
+    </span>
+    <div class="user-profile">
+      <h1>
+        {{ session['user']['firstName'] }} {{ session['user']['lastName'] }}
+      </h1>
+      <h2>
+        {{ session['user']['role'] }} | {{
+        session['user']['profile_data']['job'] }}
+      </h2>
     </div>
+  </div>
 
-    <!-- Bagian Saldo dan Topup -->
-    <div class="user-payment-container card">
-        <div class="user-payment-desc">
-            <h1>Saldo FriPay</h1>
-            <h2>Rp 5.000.000,00</h2>
-        </div>
-        <div class="user-payment-topup">
-            <div class="action-button">
-                <span>✅</span>
-                <h3>Cairkan Dana</h3>
-            </div>
-            <div class="action-button">
-                <span>⚠️</span>
-                <h3>Laporkan Masalah</h3>
-            </div>
-        </div>
+  <!-- Bagian Saldo dan Topup -->
+  <div class="user-payment-container card">
+    <div class="user-payment-desc">
+      <h1>Saldo FriPay</h1>
+      <h2>Rp 5.000.000,00</h2>
     </div>
+    <div class="user-payment-topup">
+      <div class="action-button">
+        <span>✅</span>
+        <h3>Cairkan Dana</h3>
+      </div>
+      <div class="action-button">
+        <span>⚠️</span>
+        <h3>Laporkan Masalah</h3>
+      </div>
+    </div>
+  </div>
 
-    <!-- Bagian Rating Pengguna -->
-    <div class="user-rating card">
-        <span class="rating-icon">⭐</span>
-        <div class="user-rating-desc">
-            <p>4.5/5.0</p>
-            <p>Positive Rating</p>
-        </div>
+  <!-- Bagian Rating Pengguna -->
+  <div class="user-rating card">
+    <span class="rating-icon">⭐</span>
+    <div class="user-rating-desc">
+      <p>4.5/5.0</p>
+      <p>Positive Rating</p>
     </div>
+  </div>
 </div>
 
 <!-- Form Upload Projects -->
 {% if session['user']['role'] == 'hirer' %}
 <div class="upload-container">
-    <h2 class="upload-title">Upload Projects</h2>
-    <form class="upload-form" action="{{ url_for('create_project') }}" method="POST">
-        <input type="text" name="title" class="upload-input" placeholder="Judul Project" required>
-        <input type="text" name="description" class="upload-input" placeholder="Deskripsi" required>
-        <input type="number" name="price" class="upload-input" placeholder="Harga Project" required>
-        
-        <!-- Ganti input text untuk bidang menjadi select -->
-        <select name="bidang" class="upload-input" required>
-            <option value="">Pilih Industri</option>
-            {% for industry in industries %}
-                <option value="{{ industry }}">{{ industry }}</option>
-            {% endfor %}
-        </select>
-        
-        <button type="submit" class="upload-button">Create</button>
-    </form>
+  <h2 class="upload-title">Upload Projects</h2>
+  <form
+    class="upload-form"
+    action="{{ url_for('create_project') }}"
+    method="POST"
+  >
+    <input
+      type="text"
+      name="title"
+      class="upload-input"
+      placeholder="Judul Project"
+      required
+    />
+    <input
+      type="text"
+      name="description"
+      class="upload-input"
+      placeholder="Deskripsi"
+      required
+    />
+    <input
+      type="number"
+      name="price"
+      class="upload-input"
+      placeholder="Harga Project"
+      required
+    />
+
+    <!-- Ganti input text untuk bidang menjadi select -->
+    <select name="bidang" class="upload-input" required>
+      <option value="">Pilih Industri</option>
+      {% for industry in industries %}
+      <option value="{{ industry }}">{{ industry }}</option>
+      {% endfor %}
+    </select>
+
+    <button type="submit" class="upload-button">Create</button>
+  </form>
 </div>
 
 {% endif %}
 
-
 <!-- Daftar Ongoing Projects -->
 <div class="ongoing-projects-container">
-    <div class="ongoing-projects-header">
-        <span>Ongoing Projects</span>
-        <a href="#">See More</a>
+  <div class="ongoing-projects-header">
+    <span>Ongoing Projects</span>
+    <a href="#">See More</a>
+  </div>
+  <div id="projects-container">
+    {% set filtered_projects = projects | selectattr("status", "equalto",
+    "open") | list %} {% if filtered_projects|length == 0 %}
+    <p>No ongoing projects available.</p>
+    {% else %} {% for project in filtered_projects %}
+    <div
+      class="project-card"
+      onclick="redirectToProject('{{ project._id|string }}')"
+    >
+      <div class="project-title">{{ project.title }}</div>
+      <div class="project-deadline">
+        Created at: {{ project.created_at.strftime("%d %B %Y") if
+        project.created_at else "N/A" }}
+      </div>
+      <div class="project-industry">Industry: {{ project.bidang }}</div>
+      <div class="project-profile">
+        <img
+          src="{{ url_for('static', filename='img/' + project.get('avatar', 'default.png')) }}"
+          alt="Avatar"
+          class="project-avatar"
+        />
+        <div>
+          <div class="project-name">{{ project.created_by }}</div>
+          <div class="project-stars">
+            {% if project.rating %} {{ "★" * project.rating + "☆" * (5 -
+            project.rating) }} {% else %} ☆☆☆☆☆ {% endif %}
+          </div>
+        </div>
+      </div>
+      <div class="project-price">Rp. {{ project.price }}</div>
+      <a
+        href="/id-project?id={{ project._id|string }}"
+        class="project-arrow"
+        onclick="event.stopPropagation();"
+        style="cursor: pointer"
+        >&#10132;</a
+      >
     </div>
-    <div id="projects-container">
-        {% set filtered_projects = projects | selectattr("status", "equalto", "open") | list %}
-        
-        {% if filtered_projects|length == 0 %}
-            <p>No ongoing projects available.</p>
-        {% else %}
-            {% for project in filtered_projects %}
-                <div class="project-card" onclick="redirectToProject('{{ project._id|string }}')">
-                    <div class="project-title">{{ project.title }}</div>
-                    <div class="project-deadline">
-                        Created at: {{ project.created_at.strftime("%d %B %Y") if project.created_at else "N/A" }}
-                    </div>
-                    <div class="project-industry">
-                        Industry: {{ project.bidang }}
-                    </div>
-                    <div class="project-profile">
-                        <img src="{{ url_for('static', filename='img/' + project.get('avatar', 'default.png')) }}" alt="Avatar" class="project-avatar">
-                        <div>
-                            <div class="project-name">{{ project.created_by }}</div>
-                            <div class="project-stars">
-                                {% if project.rating %}
-                                    {{ "★" * project.rating + "☆" * (5 - project.rating) }}
-                                {% else %}
-                                    ☆☆☆☆☆
-                                {% endif %}
-                            </div>
-                        </div>
-                    </div>
-                    <div class="project-price">Rp. {{ project.price }}</div>
-                    <a href="/id-project?id={{ project._id|string }}" class="project-arrow" onclick="event.stopPropagation();" style="cursor: pointer;">&#10132;</a>
-                </div>
-            {% endfor %}
-        {% endif %}
-    </div>
-    
+    {% endfor %} {% endif %}
+  </div>
 </div>
 
-
-
-
-
-{% endblock %}
-
-{% block scripts %}
+{% endblock %} {% block scripts %}
 <script>
-    function redirectToProject(projectId) {
-        console.log("Redirecting to project with ID:", projectId);
-        window.location.href = "/id-project?id=" + projectId;
-    }
+  function redirectToProject(projectId) {
+    console.log("Redirecting to project with ID:", projectId);
+    window.location.href = "/id-project?id=" + projectId;
+  }
 </script>
 {% endblock %}
-
-

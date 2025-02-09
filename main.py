@@ -15,7 +15,8 @@ app.secret_key = os.urandom(24)
 app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(days=1)
 
 # Gunakan satu MongoDB URL untuk semua kebutuhan
-app.config["MONGO_URI"] = "mongodb+srv://win:123@wcluster.nlhup.mongodb.net/frilo?retryWrites=true&w=majority"
+app.config["MONGO_URI"] = "mongodb+srv://kevin:admin123@kyzn.vrph9.mongodb.net/SEFEST25WEBDEV_VIBES?retryWrites=true&w=majority&appName=Kyzn"
+
 
 mongo = PyMongo(app)
 
@@ -67,6 +68,14 @@ def home():
     if 'username' in session:
         return redirect('chat.html')
     return redirect(url_for('login'))
+
+@app.route('/search')
+def search():
+    if 'username' not in session or 'user_id' not in session:
+        return redirect(url_for('login'))
+    
+    flash("Page not found!", "error")
+    return render_template('search.html')
 
 
 @app.route('/signup', methods=['GET', 'POST'])
