@@ -248,13 +248,14 @@ body {
 
 /* Applicant Card */
 .applicant-card {
-  border: 1px solid #ddd;
+  border: 1px solid var(--border-color);
   padding: 0.9375rem;
   margin: 0.625rem 0;
   border-radius: 0.3125rem;
   display: flex;
   justify-content: space-between;
   align-items: center;
+  background: #fff;
 }
 
 .applicant-info {
@@ -291,6 +292,22 @@ body {
   color: var(--secondary-color);
 }
 
+/* Accept Button for Applicants */
+.accept-btn {
+  background: var(--accent-color);
+  border: none;
+  color: #fff;
+  padding: 0.5rem 1rem;
+  border-radius: var(--btn-radius);
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: background var(--transition-speed) ease;
+}
+
+.accept-btn:hover {
+  background: #c0392b;
+}
+
 /* Badge */
 .badge {
   background-color: red;
@@ -301,14 +318,14 @@ body {
   margin-left: 0.3125rem;
 }
 
-/* Popup & Flash Message (if needed) */
+/* Popup & Flash Message */
 .popup,
 .flash-message {
   position: fixed;
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  background: white;
+  background: #fff;
   padding: 1.25rem;
   border-radius: 0.625rem;
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
@@ -360,6 +377,11 @@ body {
     font-size: 0.875rem;
     padding: 0.625rem 1.25rem;
   }
+  
+  .modal-content {
+    width: 90%;
+    margin: 20% auto;
+  }
 }
 
 @media (max-width: 480px) {
@@ -376,5 +398,9 @@ body {
   .form-group select {
     font-size: 0.875rem;
     padding: 0.5rem;
+  }
+  
+  .modal-content {
+    padding: 1rem;
   }
 }

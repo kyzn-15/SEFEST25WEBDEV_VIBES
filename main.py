@@ -416,6 +416,31 @@ def apply_project():
     
     return jsonify({'message': 'Application submitted successfully!'}), 200
 
+@app.route('/accept-application', methods=['POST'])
+def accept_application():
+    try:
+        data = request.get_json()
+        project_id = data.get('project_id')
+        freelancer = data.get('freelancer')
+        status = data.get('status')
+        
+        # Lakukan logika untuk memproses penerimaan aplikasi
+        # Misalnya, update status aplikasi di database
+
+        return jsonify({"message": f"Application accepted for {freelancer}."}), 200
+    except Exception as e:
+        app.logger.error("Error accepting application: %s", str(e))
+        return jsonify({
+            "message": "An error occurred while accepting the application. Please try again."
+        }), 500
+  # diharapkan "accepted"
+
+    # Lakukan logika untuk mengubah status aplikasi freelancer di database
+    # Misalnya, update data aplikasi freelancer yang sesuai dengan project_id dan freelancer
+    # Jika update berhasil, kembalikan respons sukses:
+
+    return jsonify({"message": f"Application accepted for {freelancer}."}), 200
+
 @app.route('/get-applicants/<project_id>')
 def get_applicants(project_id):
     if 'username' not in session or session['user']['role'] != 'hirer':
