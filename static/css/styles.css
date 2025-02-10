@@ -1,72 +1,387 @@
-/* Header Styles */
-header {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 70px;
-    background-color: white;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 0 20px;
-    box-shadow: 0 0 50px black;
-}
+ /* keyframes */
 
-/* Brand Logo */
-.nav_brand_logo {
-    width: 80px;
-    height: 80px;
-    object-fit: cover;
-}
+ @keyframes blackoutFadeIn {
+     from {
+         opacity: 0;
+     }
 
-/* Navigation Styles */
-nav {
-    display: flex;
-    width: 50%;
-    justify-content: space-around;
-    align-items: center;
-}
+     to {
+         opacity: 1;
+     }
+ }
 
-nav a {
-    text-decoration: none;
-    color: #004AAD;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-}
+ /* end */
 
-nav a i {
-    font-size: 30px;
-    margin-bottom: 5px;
-}
+ * {
+     margin: 0;
+     padding: 0;
+     box-sizing: border-box;
+ }
 
-nav a div {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-}
+ a {
+     text-decoration: none;
+ }
 
-/* Account Profile */
+ body {
+     overflow-x: hidden;
+ }
 
-.user_profile {
-    width: 50px;
-    height: 50px;
-    border-radius: 50%;
-    object-fit: cover;
-}
+ /* pc */
+ @media (orientation: landscape) {
+     div.navbar {
+         z-index: 10000;
+         width: 100vw;
+         position: fixed;
+         top: 0;
+         left: 0;
+         height: 10vh;
+         box-shadow: 0 5px 10px rgba(0, 0, 0, 0.4);
+         user-select: none;
+         background: rgb(222, 234, 243);
+         background: linear-gradient(90deg,
+                 rgba(222, 234, 243, 1) 17%,
+                 rgb(34, 118, 197) 40%,
+                 rgba(147, 50, 243, 1) 100%);
+     }
 
-/* Responsiveness */
-@media screen and (max-width: 768px) {
-    nav {
+     div.navbar-blackout {
+         display: none;
+     }
+
+     div.navbar img.mainLogo {
+         width: 8.5vh;
+         position: absolute;
+         top: 0.75vh;
+         left: calc(1vw + 1vh);
+         filter: drop-shadow(0 0 1vh white);
+     }
+
+     div.navbar div.pcNavButtons {
+         position: absolute;
+         width: 40vw;
+         left: 30vw;
+         display: flex;
+         justify-content: space-evenly;
+         align-items: center;
+     }
+
+     div.navbar div.pcNavButtons div.navButtonHolder {
+         width: 8vh;
+         height: 10vh;
+         text-align: center;
+         cursor: pointer;
+     }
+
+     div.navbar div.pcNavButtons div.navButtonHolder button {
+         background-color: transparent;
+         border: none;
+         color: white;
+         font-size: 7vh;
+         height: 7vh;
+         transition: margin-top 0.3s, font-size 0.3s;
+         cursor: pointer;
+     }
+
+     div.navbar div.pcNavButtons div.navButtonHolder b {
+         color: white;
+         position: relative;
+         top: -3.1vh;
+         font-size: 0.5vh;
+         transition: opacity 0.3s, top 0.3s, font-size 0.3s;
+         opacity: 0;
+         cursor: pointer;
+         font-family: "Josefin Sans", sans-serif;
+     }
+
+     div.navbar div.pcNavButtons div.navButtonHolder:hover b {
+         top: -1.4vh;
+         opacity: 1;
+         font-size: 2vh;
+     }
+
+     div.navbar div.pcNavButtons div.navButtonHolder:hover button {
+         margin-top: 0vh;
+         font-size: 5.75vh;
+     }
+     div.mAccountSection {
+        display: none;
+    }       
+
+     div.accountSection {
+         position: absolute;
+         top: 0;
+         right: 0;
+         width: 8vh;
+     }
+
+     div.accountSection img.accountImg {
+         position: absolute;
+         right: 5vh;
+         width: 8vh;
+         height: 8vh;
+         top: 1vh;
+         border-radius: 50%;
+         cursor: pointer;
+         border: 0.8vh solid rgb(216, 224, 255);
+         transition: 0.3s border;
+     }
+
+     div.accountSection img.accountImg:hover {
+         border: 0.3vh solid rgb(216, 224, 255);
+     }
+
+     div.navbar i.nav-menu-icon {
+         display: none;
+     }
+
+     div.navbar div.navbar-dropdown {
+         display: none;
+     }
+
+     div.footer {
+         height: 20vw;
+         width: 100vw;
+         position: relative;
+         top: 30vh;
+         box-shadow: 0 -1.2vh 2.4vh rgba(0, 0, 0, 0.3);
+     }
+
+     div.footer div.copyrightFooter {
+         user-select: none;
+         position: absolute;
+         bottom: 0;
+         width: 100vw;
+         height: 2.5vw;
+         background: rgb(140, 73, 240);
+         background: linear-gradient(90deg,
+                 rgba(140, 73, 240, 1) 8%,
+                 rgba(69, 86, 233, 1) 41%,
+                 rgba(50, 243, 163, 1) 100%);
+         text-align: center;
+         color: white;
+         font-family: "Open Sans", sans-serif;
+         line-height: 2.5vw;
+     }
+
+     img.footerLogo {
+         user-select: none;
+         position: absolute;
+         height: 17.5vw;
+         top: 0;
+         left: 8vw;
+     }
+
+     .selectionContainer {
+         position: absolute;
+         width: 48vw;
+         right: 10vw;
+         top: 3vw;
+         display: flex;
+         justify-content: space-between;
+     }
+
+     .selectionSubContainer {
+         font-family: "Open Sans", sans-serif;
+         height: 100%;
+     }
+
+     .selectionHeading {
+         color: rgb(26, 26, 178);
+         font-size: 1.8vw;
+         font-weight: 600;
+     }
+
+     .selectionOptions {
+         color: rgb(40, 40, 40);
+         margin-top: 1.2vw;
+         font-size: 1.2vw;
+     }
+ }
+
+ /* mobile */
+ @media (max-width: 1024px) and (orientation: portrait) {
+     div.navbar {
+         z-index: 10000;
+         width: 100vw;
+         position: fixed;
+         height: 10vh;
+         top: 0;
+         box-shadow: 0 5px 10px rgba(0, 0, 0, 0.4);
+         user-select: none;
+         background: rgb(188, 220, 245);
+         background: linear-gradient(90deg,
+                 rgb(208, 225, 237) 23%,
+                 rgb(34, 118, 197) 39%,
+                 rgba(147, 50, 243, 1) 100%);
+     }
+
+     div.navbar-blackout {
+         position: fixed;
+         z-index: 9997;
+         width: 100vw;
+         height: 100vh;
+         top: 0;
+         left: 0;
+         background-color: rgba(0, 0, 0, 0.5);
+         display: none;
+         animation: blackoutFadeIn 0.3s;
+         transition: opacity 0.6s;
+     }
+
+     div.navbar img.mainLogo {
+         width: 8.5vh;
+         position: absolute;
+         top: 0.75vh;
+         left: calc(1vw + 1vh);
+         filter: drop-shadow(0 0 1vh white);
+     }
+
+     div.navbar div.pcNavButtons {
+         display: none;
+     }
+
+     div.accountSection {
+         display: none;
+     }
+
+     i.nav-menu-icon {
+         position: absolute;
+         color: white;
+         font-size: 7.5vh;
+         top: 1.25vh;
+         right: 3vw;
+     }
+
+     div.navbar div.navbar-dropdown {
+         position: fixed;
+         width: calc(21vw + 20vh);
+         height: 90vh;
+         top: 10vh;
+         right: calc(-22vw - 20vh);
+         background: rgb(34, 118, 197);
+         background: linear-gradient(90deg,
+                 rgb(34, 118, 197) 0%,
+                 rgba(147, 50, 243, 1) 95%);
+         display: flex;
+         flex-direction: column;
+         transition: right 0.75s;
+     }
+
+     div.navbar div.navbar-dropdown button {
+         color: white;
+         width: 100%;
+         height: 7vh;
+         font-weight: 500;
+         cursor: pointer;
+         text-align: left;
+         text-indent: 6vh;
+         background-color: rgba(0, 0, 0, 0);
+         border: none;
+         font-family: "Poppins", sans-serif;
+         font-size: 3.4vh;
+         transition: background-color 0.5s;
+         border-bottom: 0.4vh solid rgba(0, 0, 0, 0.1);
+         
+     }
+
+     div.navbar div.navbar-dropdown button i {
+         color: white;
+         position: absolute;
+         left: -4.5vh;
+         font-size: 3vh;
+         text-shadow: none;
+         transform: translateY(1.2vh);
+     }
+
+     div.navbar div.navbar-dropdown.showNav {
+         right: -1vw;
+     }
+     a.amAccountSection{
+
+        position: absolute;
+        bottom: 0;
         width: 100%;
-        justify-content: space-evenly;
-    }
+        border-top: 0.4vh solid rgba(0, 0, 0, 0.1);
 
-    .account a {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-    }
-}
+     }
+    button.mAccountSection {
+        min-height: 10vh;
+    }       
+    
+    button.mAccountSection img.accountImg {
+          position: relative;
+          width: 8vh;
+          height: 8vh;
+          top: 0;
+          left: 4vw;
+          border-radius: 50%;
+          cursor: pointer;
+          border: 0.3vh solid rgb(216, 224, 255);
+          transition: 0.3s border;
+          float: left;
+          text-indent: -8vh;
+      }
+      button.mAccountSection span {
+          position: absolute;
+          left: 12vw;
+          line-height: 8vh;
+      }
+
+     div.footer {
+         height: 100vw;
+         width: 100vw;
+         position: relative;
+         top: 20vh;
+         box-shadow: 0 -1.2vh 2.4vh rgba(0, 0, 0, 0.3);
+     }
+
+     div.footer div.copyrightFooter {
+         user-select: none;
+         position: absolute;
+         bottom: 0;
+         width: 100vw;
+         height: 3.5vh;
+         background: rgb(140, 73, 240);
+         background: linear-gradient(90deg,
+                 rgba(140, 73, 240, 1) 8%,
+                 rgba(69, 86, 233, 1) 41%,
+                 rgba(50, 243, 163, 1) 100%);
+         text-align: center;
+         color: white;
+         font-family: "Open Sans", sans-serif;
+         line-height: 3.5vh;
+     }
+
+     img.footerLogo {
+         user-select: none;
+         position: absolute;
+         height: 50vw;
+         left: 25vw;
+     }
+
+     .selectionContainer {
+         position: absolute;
+         width: 80vw;
+         top: 55vw;
+         left: 10vw;
+         display: flex;
+         justify-content: space-between;
+     }
+
+     .selectionSubContainer {
+         font-family: "Open Sans", sans-serif;
+         height: 100%;
+     }
+
+     .selectionHeading {
+         color: rgb(26, 26, 178);
+         font-size: 4.5vw;
+         font-weight: 600;
+     }
+
+     .selectionOptions {
+         color: rgb(40, 40, 40);
+         margin-top: 3vw;
+         font-size: 3vw;
+     }
+ }
