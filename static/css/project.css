@@ -15,19 +15,19 @@
     --transition-speed: 0.3s;
     --card-radius: 10px;
     --container-max-width: 900px;
-}
-
-/* Global Styles */
-body {
+  }
+  
+  /* Global Styles */
+  body {
     font-family: 'Inter', sans-serif;
     background: var(--background-color);
     color: var(--text-color);
     margin: 0;
     padding: 0;
-}
-
-/* Projects Container */
-#projects-container {
+  }
+  
+  /* Projects Container */
+  #projects-container {
     max-width: var(--container-max-width);
     margin: 3rem auto;
     padding: 2rem;
@@ -35,10 +35,10 @@ body {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
     gap: 20px;
-}
-
-/* Project Card */
-.project-card {
+  }
+  
+  /* Project Card */
+  .project-card {
     background: var(--card-background);
     border-radius: var(--card-radius);
     padding: 1.5rem;
@@ -50,62 +50,63 @@ body {
     border-left: 5px solid var(--primary-color);
     position: relative;
     cursor: pointer;
-}
-
-.project-card:hover {
+  }
+  
+  .project-card:hover {
     transform: translateY(-4px);
     box-shadow: 0 6px 12px rgba(0, 0, 0, 0.12);
-}
-
-/* Header */
-.project-header {
+  }
+  
+  /* Header */
+  .project-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-}
-
-/* Project Title */
-.project-title {
+  }
+  
+  /* Project Title */
+  .project-title {
     font-size: 1.4rem;
     font-weight: 600;
     color: var(--primary-color);
-}
-
-/* Project Meta */
-.project-meta {
+  }
+  
+  /* Project Meta */
+  .project-meta {
     font-size: 0.9rem;
     color: var(--text-light);
     margin-bottom: 1rem;
-}
-
-/* Hirer & Freelancer Information */
-.project-hirer, .project-freelancer {
+  }
+  
+  /* Hirer & Freelancer Information */
+  .project-hirer,
+  .project-freelancer {
     font-size: 1rem;
     font-weight: 500;
     margin-top: 0.5rem;
-}
-
-/* Stars & Price */
-.project-info {
+  }
+  
+  /* Stars & Price */
+  .project-info {
     display: flex;
     justify-content: space-between;
     align-items: center;
     margin-top: 1rem;
-}
-
-.project-stars {
+  }
+  
+  .project-stars {
     font-size: 1rem;
     color: #ffc107;
-}
-
-.project-price {
+  }
+  
+  .project-price {
     font-size: 1.2rem;
     font-weight: 600;
     color: #28a745;
-}
-
-/* Project Arrow */
-.project-arrow {
+  }
+  
+  /* Project Arrow (Link to Detail) */
+  .project-arrow {
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -118,68 +119,70 @@ body {
     text-decoration: none;
     font-size: 1.2rem;
     transition: background-color 0.3s ease, color 0.3s ease, transform 0.3s ease;
-}
-
-.project-arrow:hover {
+  }
+  
+  .project-arrow:hover {
     background-color: var(--primary-color);
     color: #fff;
     transform: scale(1.1);
-}
-
-/* Responsive Styles */
-
-/* Untuk layar dengan lebar maksimum 768px */
-@media (max-width: 768px) {
+  }
+  
+  /* Responsive Styles */
+  
+  /* Untuk layar dengan lebar maksimum 768px */
+  @media (max-width: 768px) {
     #projects-container {
-        padding: 1.5rem;
-        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      padding: 1.5rem;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
     }
-
+  
     .project-card {
-        padding: 1.2rem;
+      padding: 1.2rem;
     }
-
+  
     .project-title {
-        font-size: 1.3rem;
+      font-size: 1.3rem;
     }
-
+  
     .project-price {
-        font-size: 1rem;
+      font-size: 1rem;
     }
-
+  
     .project-arrow {
-        width: 34px;
-        height: 34px;
-        font-size: 1.1rem;
+      width: 34px;
+      height: 34px;
+      font-size: 1.1rem;
     }
-}
-
-/* Untuk layar dengan lebar maksimum 480px */
-@media (max-width: 480px) {
+  }
+  
+  /* Untuk layar dengan lebar maksimum 480px */
+  @media (max-width: 480px) {
     #projects-container {
-        padding: 1rem;
-        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      padding: 1rem;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
     }
-
+  
     .project-card {
-        padding: 1rem;
+      padding: 1rem;
     }
-
+  
     .project-title {
-        font-size: 1.2rem;
+      font-size: 1.2rem;
     }
-
-    .project-hirer, .project-freelancer {
-        font-size: 0.9rem;
+  
+    .project-hirer,
+    .project-freelancer {
+      font-size: 0.9rem;
     }
-
+  
     .project-price {
-        font-size: 0.95rem;
+      font-size: 0.95rem;
     }
-
+  
     .project-arrow {
-        width: 32px;
-        height: 32px;
-        font-size: 1rem;
+      width: 32px;
+      height: 32px;
+      font-size: 1rem;
     }
-}
+  }
+  

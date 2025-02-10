@@ -10,7 +10,6 @@
 
 {% block content %}
 <div class="project-detail-container">
-  <!-- Container Flash Messages -->
   <div id="flash-messages">
     {% with messages = get_flashed_messages(with_categories=true) %}
       {% if messages %}
@@ -45,11 +44,7 @@
     <img class="project-avatar" src="{{ url_for('static', filename='img/' + project.get('avatar', 'default.png')) }}" alt="Owner Avatar">
     <div class="owner-info">
       <p><strong>Owner:</strong> {{ project.created_by }}</p>
-      {% if project.rating %}
-        <p><strong>Rating:</strong> {{ "★" * project.rating + "☆" * (5 - project.rating) }}</p>
-      {% else %}
-        <p><strong>Rating:</strong> No rating yet</p>
-      {% endif %}
+        <p>Description: {{ project.description }}</p>
     </div>
   </div>
 
@@ -87,7 +82,6 @@
       <span class="close" onclick="closeModal()">&times;</span>
       <h3>Applicants for this Project</h3>
       <div id="applicantsList">
-        <!-- Kartu applicant akan di-generate oleh JavaScript -->
       </div>
     </div>
   </div>
@@ -145,17 +139,14 @@
 {% block scripts %}
 <script>
     document.addEventListener("DOMContentLoaded", function() {
-        // Panggil updateInboxCount dengan project id spesifik
         const projectId = "{{ project._id }}";
         updateInboxCount(projectId);
       
-        // Set interval untuk update inbox setiap 10 detik
         setInterval(function() {
           updateInboxCount(projectId);
         }, 10000);
       });
       
-      // Fungsi untuk update jumlah inbox berdasarkan project id
       function updateInboxCount(projectId) {
         fetch('/get-inbox-count?project_id=' + encodeURIComponent(projectId))
           .then(response => response.json())
@@ -182,7 +173,6 @@ document.addEventListener("DOMContentLoaded", function() {
   });
 
 
-  // Fungsi untuk Apply Project via AJAX (Worker)
   function applyProject(projectId) {
     var btn = document.querySelector('.apply-btn');
     btn.disabled = true;
@@ -205,7 +195,6 @@ document.addEventListener("DOMContentLoaded", function() {
     });
   }
 
-  // Fungsi Load Applicants dan tampilkan data user lengkap (Hirer)
   window.loadApplicants = function(projectId) {
     fetch(`/get-applicants/${projectId}`)
       .then(response => {
@@ -215,7 +204,6 @@ document.addEventListener("DOMContentLoaded", function() {
         return response.json();
       })
       .then(data => {
-        // Pastikan data adalah array
         if (!Array.isArray(data)) {
           console.error("Expected an array but got:", data);
           data = [];
@@ -223,7 +211,6 @@ document.addEventListener("DOMContentLoaded", function() {
         const list = document.getElementById('applicantsList');
         list.innerHTML = '';
         data.forEach(applicant => {
-          // generate HTML untuk tiap applicant
           const firstName = applicant.firstName || 'N/A';
           const lastName = applicant.lastName || 'N/A';
           const avatar = (applicant.profile_data && applicant.profile_data.avatar)
@@ -261,7 +248,6 @@ document.addEventListener("DOMContentLoaded", function() {
   };
   
   
-  // Fungsi untuk menerima aplikasi (Accept) dari applicant
   function acceptApplication(projectId, freelancer) {
     fetch('/accept-application', {
       method: 'POST',
@@ -275,15 +261,12 @@ document.addEventListener("DOMContentLoaded", function() {
       return response.json();
     })
     .then(data => {
-      // Tampilkan pesan sukses
       const flashContainer = document.getElementById('flash-messages');
       flashContainer.innerHTML = `<div class="alert alert-success" role="alert">${data.message}</div>`;
-      // Hapus badge notifikasi
       const inboxBadge = document.getElementById('applicantCount');
       if (inboxBadge) {
         inboxBadge.style.display = 'none';
       }
-      // Redirect ke /project setelah 1 detik
       setTimeout(() => {
         window.location.href = '/project';
       }, 1000);

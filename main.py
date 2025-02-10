@@ -9,30 +9,24 @@ from bson.objectid import ObjectId
 import os
 import random
 
-# ==================== KONFIGURASI APLIKASI UTAMA ====================
 app = Flask(__name__)
 app.secret_key = os.urandom(24)
 app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(days=1)
 
-# Gunakan satu MongoDB URL untuk semua kebutuhan
 app.config["MONGO_URI"] = "mongodb+srv://win:123@wcluster.nlhup.mongodb.net/frilo?retryWrites=true&w=majority"
 
 
 mongo = PyMongo(app)
 
-# Inisialisasi SocketIO (dengan async_mode threading agar kompatibel)
 socketio = SocketIO(app, async_mode='threading')
 
-# --- Koleksi untuk Fitur Chat ---
-# Seluruh operasi chat menggunakan koleksi ini (di dalam database utama)
-chat_users = mongo.db.chat_users         # Untuk data profil chat (user_id, contacts, dsb.)
-chat_messages = mongo.db.chat_messages   # Untuk menyimpan pesan chat
-# Di bagian atas file app.py tambahkan:
+chat_users = mongo.db.chat_users         
+chat_messages = mongo.db.chat_messages  
 applications = mongo.db.applications
 client = MongoClient("mongodb://localhost:27017/")
 db = client['project_db']
 projects_collection = db['projects']
-# Fungsi pembantu: Pastikan setiap user memiliki profil chat
+
 def ensure_chat_profile(username):
     chat_user = chat_users.find_one({"username": username})
     if not chat_user:
@@ -42,9 +36,9 @@ def ensure_chat_profile(username):
                 break
         chat_users.insert_one({
             'username': username,
-            'password': '',  # Password tidak dipakai untuk chat
+            'password': '',  
             'user_id': new_id,
-            'contacts': []   # Daftar kontak awal kosong
+            'contacts': []   
         })
         chat_user = chat_users.find_one({"username": username})
     return chat_user
@@ -61,7 +55,6 @@ except Exception as e:
 
 
 
-# ==================== ROUTES UTAMA (Login, Signup, Survey, Dashboard, dsb.) ====================
 @app.route('/')
 @app.route('/homepage')
 def home():
@@ -102,7 +95,7 @@ def signup():
             "email": email,
             "password": hashed_password,
             "created_at": datetime.utcnow(),
-            "role": None,  # Belum mengisi survey
+            "role": None,  
             "profile_data": {}
         })
         flash("Registration successful! Please login.", "success")
@@ -139,14 +132,12 @@ def survey():
             "avatar": avatar or "default.png"
         })
 
-        # Update MongoDB with the survey data
         mongo.db.users.update_one(
             {"username": session['username']},
             {"$set": {"role": role, "profile_data": profile_data}}
         )
         flash("Survey completed successfully!", "success")
         
-        # Redirect to the dashboard after survey submission
         return redirect(url_for('dashboard'))
     return render_template('survey.html', user=user)
 
@@ -171,7 +162,7 @@ def login():
             }
             if not user.get("role"):
                 return redirect(url_for('survey'))
-            # Pastikan profil chat sudah ada, simpan user_id chat ke session
+            
             chat_user = ensure_chat_profile(username)
             session['user_id'] = chat_user['user_id']
             flash('Login successful!', 'success')
@@ -186,13 +177,11 @@ def dashboard():
         flash('Please login first!', 'warning')
         return redirect(url_for('login'))
 
-    # Selalu ambil data user dari MongoDB
     user = mongo.db.users.find_one({"username": session['username']})
     if not user:
         flash("User not found, please log in again.", "error")
         return redirect(url_for('logout'))
 
-    # Perbarui session['user'] dengan data yang terbaru dari database
     session['user'] = {
         "username": user['username'],
         "email": user['email'],
@@ -204,29 +193,9 @@ def dashboard():
 
     projects = list(mongo.db.projects.find().sort("created_at", -1))
     
-    # Ambil daftar industri unik dari data user
     industries = mongo.db.users.distinct("profile_data.industry")
     
     return render_template('dashboard.html', user=session['user'], projects=projects, industries=industries)
-    # Perbarui data user jika perlu
-    if 'user' not in session or not session['user'].get('role'):
-        user = mongo.db.users.find_one({"username": session['username']})
-        if not user:
-            flash("User not found, please log in again.", "error")
-            return redirect(url_for('logout'))
-        session['user'] = {
-            "username": user['username'],
-            "email": user['email'],
-            "role": user.get('role', ''),
-            "profile_data": user.get('profile_data', {}),
-            "firstName": user.get('firstName', ''),
-            "lastName": user.get('lastName', '')
-        }
-    # Pastikan session['user_id'] sudah ada
-    if 'user_id' not in session:
-        chat_user = ensure_chat_profile(session['username'])
-        session['user_id'] = chat_user['user_id']
-    return render_template('dashboard.html', user=session['user'])
 
 @app.route('/logout')
 def logout():
@@ -248,18 +217,15 @@ def submit_survey():
     first_name = data.get('firstName')
     last_name = data.get('lastName')
 
-    # Basic validation
     if not role:
         return jsonify({'error': 'Role is required'}), 400
 
-    # Prepare profile data
     profile_data = {
         'industry': industry or 'Not specified',
         'job': job or 'Not specified',
         'avatar': avatar or 'default.png'
     }
 
-    # Update user document in MongoDB
     mongo.db.users.update_one(
         {'username': session['username']},
         {'$set': {
@@ -270,7 +236,6 @@ def submit_survey():
         }}
     )
 
-    # **Tambahkan return statement di sini**
     return jsonify({'success': True, 'message': 'Survey submitted successfully!'}), 200
 
 @app.errorhandler(404)
@@ -308,12 +273,11 @@ def create_project():
         "price": float(price),
         "bidang": bidang,
         "created_at": datetime.utcnow(),
-        "created_by": session['username'],  # simpan username pembuat proyek
+        "created_by": session['username'],  
         "avatar": session['user']['profile_data']['avatar'],
-        "status": "open"  # status proyek, misalnya: open, in-progress, completed
+        "status": "open" 
     }
     
-    # Masukkan data ke koleksi 'projects'
     mongo.db.projects.insert_one(new_project)
     flash("Project created successfully!", "success")
     return redirect(url_for('dashboard'))
@@ -337,7 +301,6 @@ def project_detail():
         flash("Project not found.", "error")
         return redirect(url_for('dashboard'))
     
-    # Ambil daftar industri unik dari data user
     industries = mongo.db.users.distinct("profile_data.industry")
     
     return render_template('project_detail.html', project=project, industries=industries)
@@ -350,8 +313,6 @@ def update_project():
     price = request.form.get('price')
     bidang = request.form.get('bidang')
     status = request.form.get('status')
-    
-    # Lakukan validasi data jika perlu
     
     mongo.db.projects.update_one(
         {"_id": ObjectId(project_id)},
@@ -367,31 +328,16 @@ def update_project():
     flash("Project updated successfully!", "success")
     return redirect(url_for('project_detail', id=project_id))
 
-# Ambil data profil chat user dan daftar kontak dari koleksi chat_users
-    chat_user = chat_users.find_one({'user_id': session['user_id']})
-    contacts = []
-    if chat_user and 'contacts' in chat_user:
-        for contact_id in chat_user['contacts']:
-            contact_doc = chat_users.find_one({'user_id': contact_id})
-            if contact_doc:
-                contacts.append({
-                    'user_id': contact_doc['user_id'],
-                    'contact_username': contact_doc['username']
-                })
-    return render_template('chat.html', username=session['username'], user_id=session['user_id'], contacts=contacts)
-
 from bson.objectid import ObjectId
 
 @app.route('/cancel-project')
 def cancel_project():
-    # Ambil ID proyek dari parameter URL
     project_id = request.args.get('id')
     if not project_id:
         flash("Project ID is missing.", "error")
         return redirect(url_for('dashboard'))
     
     try:
-        # Hapus proyek dari koleksi 'projects'
         result = mongo.db.projects.delete_one({"_id": ObjectId(project_id)})
         if result.deleted_count > 0:
             flash("Project canceled successfully!", "success")
@@ -400,7 +346,6 @@ def cancel_project():
     except Exception as e:
         flash("An error occurred while canceling the project.", "error")
     
-    # Kembali ke dashboard
     return redirect(url_for('dashboard'))
 
 @app.route('/apply-project', methods=['POST'])
@@ -411,17 +356,14 @@ def apply_project():
     project_id = request.form.get('project_id')
     freelancer_username = session['username']
     
-    # Cek apakah user sudah pernah apply untuk project ini
     existing = applications.find_one({
         'project_id': project_id,
         'freelancer': freelancer_username
     })
     
     if existing:
-        # Jika sudah pernah apply, kembalikan pesan notifikasi
         return jsonify({'message': 'You have already applied to this project!'}), 200
     
-    # Insert data aplikasi baru
     applications.insert_one({
         'project_id': project_id,
         'freelancer': freelancer_username,
@@ -440,23 +382,20 @@ def accept_application():
         data = request.get_json()
         project_id = data.get('project_id')
         freelancer = data.get('freelancer')
-        status = data.get('status', 'accepted')  # Default: accepted
+        status = data.get('status', 'accepted')  
 
         hirer_data = session.get("user")
         if not hirer_data:
             return jsonify({"message": "User not logged in"}), 401
 
-        # Pastikan untuk mengambil username dari session jika session['user'] adalah dictionary.
         hirer = hirer_data.get("username") if isinstance(hirer_data, dict) else hirer_data
 
-        # Konversi project_id ke ObjectId
         try:
             project_obj_id = ObjectId(project_id)
         except Exception as e:
             app.logger.error("Invalid project id: %s", str(e))
             return jsonify({"message": "Invalid project id"}), 400
 
-        # Update dokumen project dengan accepted freelancer dan hirer.
         result = mongo.db.projects.update_one(
             {"_id": project_obj_id},
             {"$set": {
@@ -466,12 +405,10 @@ def accept_application():
             }}
         )
 
-        # Hapus notifikasi terkait proyek. 
-        # Misalkan notifikasi disimpan dengan field 'project_id' sebagai ObjectId.
         try:
             notif_project_obj_id = ObjectId(project_id)
         except Exception as e:
-            notif_project_obj_id = project_id  # Jika ternyata disimpan sebagai string
+            notif_project_obj_id = project_id  
 
         del_result = mongo.db.notifications.delete_many({"project_id": notif_project_obj_id})
         app.logger.info("Deleted %d notifications for project %s", del_result.deleted_count, project_id)
@@ -488,7 +425,6 @@ def accept_application():
 @app.route('/get-applicants/<project_id>')
 def get_applicants(project_id):
     
-    # Pastikan hanya hirer yang dapat mengakses
     if 'username' not in session or session['user']['role'] != 'hirer':
         return jsonify([]), 403
 
@@ -528,7 +464,6 @@ def get_applicants(project_id):
         }}
     ]))
 
-    # Pastikan selalu mengembalikan array
     return jsonify(applicants), 200
 
 
@@ -557,12 +492,10 @@ def update_application():
     project_id = data.get('project_id')
     freelancer = data.get('freelancer')
     
-    # Verify project ownership
     project = mongo.db.projects.find_one({'_id': ObjectId(project_id)})
     if not project or project['created_by'] != session['username']:
         return jsonify({'error': 'Unauthorized'}), 403
     
-    # Update application status
     result = applications.update_one(
         {'project_id': project_id, 'freelancer': freelancer},
         {'$set': {'status': data.get('status')}}
@@ -574,21 +507,16 @@ def update_application():
 
 @app.route('/project')
 def project_page():
-    # Pastikan user sudah login
     if 'username' not in session:
         flash("Please login first!", "warning")
         return redirect(url_for('login'))
     
-    # Ambil data user dari session
     user = session.get('user', {})
     role = user.get('role')
 
-    # Berdasarkan role, query proyek yang sesuai:
     if role == 'hirer':
-        # Untuk hirer, tampilkan proyek yang diupload (created_by)
         projects = list(mongo.db.projects.find({"created_by": session['username']}).sort("created_at", -1))
     elif role == 'worker':
-        # Untuk freelancer (worker), tampilkan proyek di mana mereka sudah diterima (accepted_freelancer)
         projects = list(mongo.db.projects.find({"accepted_freelancer": session['username']}).sort("created_at", -1))
     else:
         projects = []
@@ -610,10 +538,9 @@ def handle_private_message(data):
     receiver_id = data.get('receiver')
     message = data.get('message')
     if not message:
-        return  # Jangan proses pesan kosong
+        return  
     print(f"[DEBUG] private_message: from {sender_id} to {receiver_id}: {message}")
     timestamp = datetime.now()
-    # Simpan pesan ke koleksi chat_messages
     message_data = {
         'sender_id': sender_id,
         'sender_username': sender_username,
@@ -623,7 +550,6 @@ def handle_private_message(data):
     }
     chat_messages.insert_one(message_data)
     formatted_time = timestamp.strftime("%H:%M")
-    # Tambahkan pengirim ke daftar kontak penerima (jika belum ada)
     result = chat_users.update_one(
         {'user_id': receiver_id},
         {'$addToSet': {'contacts': sender_id}}
@@ -635,7 +561,7 @@ def handle_private_message(data):
                 'contact_id': sender_doc['user_id'],
                 'contact_username': sender_doc['username']
             }, room=receiver_id)
-    # Emit pesan ke pengirim
+            
     emit('new_message', {
         'sender': sender_username,
         'sender_id': sender_id,
@@ -643,7 +569,7 @@ def handle_private_message(data):
         'timestamp': formatted_time,
         'is_me': True
     }, room=sender_id)
-    # Emit pesan ke penerima
+    
     emit('new_message', {
         'sender': sender_username,
         'sender_id': sender_id,
@@ -695,7 +621,6 @@ def handle_add_contact(data):
         {'user_id': current_user_id},
         {'$addToSet': {'contacts': contact_id}}
     )
-    # Emit event contact_added jika update berhasil (atau dokumen sudah cocok)
     if update_result.modified_count > 0 or update_result.matched_count > 0:
         emit('contact_added', {
             'contact_id': contact['user_id'],
@@ -704,7 +629,6 @@ def handle_add_contact(data):
     else:
         emit('contact_error', {'msg': 'Failed to add contact.'}, room=current_user_id)
 
-# ==================== MAIN ====================
 if __name__ == '__main__':
     socketio.run(app, debug=True)
 

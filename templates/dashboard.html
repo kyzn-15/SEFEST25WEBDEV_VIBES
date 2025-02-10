@@ -7,7 +7,6 @@ css %}
 />
 {% endblock %} {% block content %}
 <div class="dashboard-container">
-  <!-- Bagian Profil Pengguna -->
   <div class="user-profile-container card">
     <span class="profile-icon">
       <img
@@ -26,7 +25,6 @@ css %}
     </div>
   </div>
 
-  <!-- Bagian Saldo dan Topup -->
   <div class="user-payment-container card">
     <div class="user-payment-desc">
       <h1>Saldo FriPay</h1>
@@ -44,12 +42,11 @@ css %}
     </div>
   </div>
 
-  <!-- Bagian Rating Pengguna -->
   <div class="user-rating card">
     <span class="rating-icon">⭐</span>
     <div class="user-rating-desc">
-      <p>4.5/5.0</p>
-      <p>Positive Rating</p>
+      <p>4.9/5.0</p>
+      <p>Frilo Website Rating</p>
     </div>
   </div>
 </div>
@@ -85,7 +82,6 @@ css %}
       required
     />
 
-    <!-- Ganti input text untuk bidang menjadi select -->
     <select name="bidang" class="upload-input" required>
       <option value="">Pilih Industri</option>
       {% for industry in industries %}
@@ -115,11 +111,12 @@ css %}
       onclick="redirectToProject('{{ project._id|string }}')"
     >
       <div class="project-title">{{ project.title }}</div>
+      <div class="project-description">Description: {{ project.description }}</div>
+      <div class="project-industry">Industry: {{ project.bidang }}</div>
       <div class="project-deadline">
         Created at: {{ project.created_at.strftime("%d %B %Y") if
         project.created_at else "N/A" }}
       </div>
-      <div class="project-industry">Industry: {{ project.bidang }}</div>
       <div class="project-profile">
         <img
           src="{{ url_for('static', filename='img/' + project.get('avatar', 'default.png')) }}"
@@ -128,10 +125,6 @@ css %}
         />
         <div>
           <div class="project-name">{{ project.created_by }}</div>
-          <div class="project-stars">
-            {% if project.rating %} {{ "★" * project.rating + "☆" * (5 -
-            project.rating) }} {% else %} ☆☆☆☆☆ {% endif %}
-          </div>
         </div>
       </div>
       <div class="project-price">Rp. {{ project.price }}</div>

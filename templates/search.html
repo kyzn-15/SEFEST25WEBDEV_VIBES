@@ -21,37 +21,32 @@
     <button class="projectButtons" onclick="changeButtons(1)">Newest Post</button>
   </div>
 
-  <!-- Container untuk daftar proyek -->
   <div class="project-list"></div>
 </div>
 {% endblock %}
 
 {% block scripts %}
 <script>
-  // Data proyek dari backend (pastikan variabel projects dikirim dari Flask)
   let projects = {{ projects|tojson }};
   
-  // Ambil industri user untuk filter Best Match (pastikan field ini tersedia di session)
   let userIndustry = "";
   {% if session['user'] and session['user']['profile_data'] and session['user']['profile_data'].industry %}
     userIndustry = "{{ session['user']['profile_data']['industry'] }}".toUpperCase();
   {% endif %}
 
-  let sortedProjects = []; // Array hasil filter/sort
+  let sortedProjects = []; 
 
-  // Fungsi changeButtons: tabIndex 0 => Best Match, 1 => Newest Post
   function changeButtons(tabIndex) {
     // Reset kelas aktif untuk tombol
     document.querySelectorAll(".projectButtons").forEach(btn => btn.classList.remove("active"));
     document.querySelectorAll(".projectButtons")[tabIndex].classList.add("active");
 
     if (tabIndex === 1) {
-      // Newest Post: semua proyek open, diurutkan berdasarkan created_at descending
       sortedProjects = projects
         .filter(proj => proj.status && proj.status.toLowerCase() === "open")
         .sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
     } else {
-      // Best Match: hanya proyek open dengan industri yang sama dengan user
+
       sortedProjects = projects
         .filter(proj => 
           proj.status && proj.status.toLowerCase() === "open" &&
@@ -62,7 +57,6 @@
     renderProjects();
   }
 
-  // Fungsi untuk merender daftar proyek ke dalam .project-list
   function renderProjects() {
     let container = document.querySelector(".project-list");
     container.innerHTML = "";
@@ -76,7 +70,6 @@
       container.innerHTML += `
         <div class="border-bg" onclick="redirectToProject('${project._id}')">
           <div class="project-card">
-            <!-- Header: Title & Arrow -->
             <div class="project-header">
               <div class="project-title">${project.title}</div>
               <a href="/id-project?id=${project._id}" 
@@ -84,18 +77,15 @@
                  onclick="event.stopPropagation();" 
                  title="View Details">&#10132;</a>
             </div>
-            <!-- Meta Information -->
             <div class="project-meta">
               <span class="project-industry">
                 Industry: ${project.bidang}
               </span>
             </div>
-            <!-- Owner (Hirer) Information -->
             <div class="project-owner">
               <img class="project-avatar" src="/static/img/${ project.avatar || 'default.png' }" alt="Avatar">
               <div class="project-name">Hirer: ${project.created_by}</div>
             </div>
-            <!-- Price -->
             <div class="project-price">Rp. ${project.price}</div>
           </div>
         </div>
@@ -103,12 +93,10 @@
     });
   }
 
-  // Fungsi untuk redirect ke halaman detail proyek
   function redirectToProject(projectId) {
     window.location.href = "/id-project?id=" + projectId;
   }
 
-  // Fungsi pencarian: filter proyek berdasarkan input
   function toSearch() {
     let searchInput = document.querySelector(".project-search-box input").value.toUpperCase();
     let projectCards = document.querySelectorAll(".border-bg");
@@ -118,7 +106,6 @@
     });
   }
 
-  // Inisialisasi tampilan dengan tab default (Best Match)
   changeButtons(0);
 </script>
 {% endblock %}
