@@ -1,11 +1,14 @@
-{% extends 'layout.html' %} {% block title %}Dashboard{% endblock %} {% block
-css %}
-<link
-  rel="stylesheet"
-  type="text/css"
-  href="{{ url_for('static', filename='css/search.css') }}"
-/>
-{% endblock %} {% block content %}
+{% extends 'layout.html' %}
+
+{% block title %}
+  Search Projects
+{% endblock %}
+
+{% block css %}
+  <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/search.css') }}">
+{% endblock %}
+
+{% block content %}
 <div class="projectsContainer">
   <span class="discover">Discover Projects</span>
 
@@ -14,145 +17,108 @@ css %}
   </div>
 
   <div class="project-tabs">
-    <button class="projectButtons active" onclick="changeButtons(0)">
-      Best Match
-    </button>
-    <button class="projectButtons" onclick="changeButtons(1)">
-      Newest Post
-    </button>
+    <button class="projectButtons active" onclick="changeButtons(0)">Best Match</button>
+    <button class="projectButtons" onclick="changeButtons(1)">Newest Post</button>
   </div>
 
+  <!-- Container untuk daftar proyek -->
   <div class="project-list"></div>
 </div>
-{% endblock %} {% block scripts %}
-<script>
-  let projbuts = document.body.querySelectorAll(".projectButtons");
-  let defaultCond = 0;
-  function changeButtons(x) {
-    projlistcon.innerHTML = "";
-    for (i in projbuts) {
-      projbuts[i].className = "projectButtons";
-    }
-    projbuts[x].className += " active";
+{% endblock %}
 
-    if (x == 0) {
-      sorted_projlist = projlist;
+{% block scripts %}
+<script>
+  // Data proyek dari backend (pastikan variabel projects dikirim dari Flask)
+  let projects = {{ projects|tojson }};
+  
+  // Ambil industri user untuk filter Best Match (pastikan field ini tersedia di session)
+  let userIndustry = "";
+  {% if session['user'] and session['user']['profile_data'] and session['user']['profile_data'].industry %}
+    userIndustry = "{{ session['user']['profile_data']['industry'] }}".toUpperCase();
+  {% endif %}
+
+  let sortedProjects = []; // Array hasil filter/sort
+
+  // Fungsi changeButtons: tabIndex 0 => Best Match, 1 => Newest Post
+  function changeButtons(tabIndex) {
+    // Reset kelas aktif untuk tombol
+    document.querySelectorAll(".projectButtons").forEach(btn => btn.classList.remove("active"));
+    document.querySelectorAll(".projectButtons")[tabIndex].classList.add("active");
+
+    if (tabIndex === 1) {
+      // Newest Post: semua proyek open, diurutkan berdasarkan created_at descending
+      sortedProjects = projects
+        .filter(proj => proj.status && proj.status.toLowerCase() === "open")
+        .sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
     } else {
-      sort_projects();
+      // Best Match: hanya proyek open dengan industri yang sama dengan user
+      sortedProjects = projects
+        .filter(proj => 
+          proj.status && proj.status.toLowerCase() === "open" &&
+          proj.bidang && proj.bidang.toUpperCase() === userIndustry
+        )
+        .sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
     }
-    for (h in sorted_projlist) {
-      render_project(h);
-    }
+    renderProjects();
   }
 
-  let projlistcon = document.body.querySelector(".project-list");
+  // Fungsi untuk merender daftar proyek ke dalam .project-list
+  function renderProjects() {
+    let container = document.querySelector(".project-list");
+    container.innerHTML = "";
 
-  let projlist = [
-    {
-      name: "Kevin Wilbert Johan",
-      stars: 4.2,
-      hours: 5,
-      title: "Optimasi SEO dan Kecepatan Website E-Commerce",
-      min: "5.000.000",
-      max: "10.000.000",
-      tags: ["website", "economic"],
-    },
-    {
-      name: "Winson Lie",
-      stars: 3.3,
-      hours: 2,
-      title: "Bantu cari nigga buat kerja paksa",
-      min: "1.000",
-      max: "10.000",
-      tags: ["slavery", "nigger"],
-    },
-    {
-      name: "Jenson Phang",
-      stars: 4.8,
-      hours: 235,
-      title: "Plis bantu backend",
-      min: "12.000.000",
-      max: "22.000.000",
-      tags: ["website", "backend"],
-    },
-  ];
-
-  let sorted_projlist = projlist;
-
-  function render_project(num) {
-    projlistcon.innerHTML += `
-        <div class = "border-bg">
-          <div class="project-card">
-          <div class="project-profile">
-            <img src="{{ url_for('static', filename='img/avatar1.jpg') }}" alt="Profile Picture" />
-            <div>
-              <div class="project-name">${sorted_projlist[num].name}</div>
-              <div class="project-stars">${returnStars(
-                sorted_projlist[num].stars
-              )}</div>
-            </div>
-            <div class="project-time">${returnTime(
-              sorted_projlist[num].hours
-            )}</div>
-          </div>
-
-          <div class="project-title">${sorted_projlist[num].title}</div>
-          <div class="project-budget">
-            Budget: Rp. ${sorted_projlist[num].min} - Rp. ${
-      sorted_projlist[num].max
+    if (sortedProjects.length === 0) {
+      container.innerHTML = "<p>No projects available.</p>";
+      return;
     }
+
+    sortedProjects.forEach(project => {
+      container.innerHTML += `
+        <div class="border-bg" onclick="redirectToProject('${project._id}')">
+          <div class="project-card">
+            <!-- Header: Title & Arrow -->
+            <div class="project-header">
+              <div class="project-title">${project.title}</div>
+              <a href="/id-project?id=${project._id}" 
+                 class="project-arrow" 
+                 onclick="event.stopPropagation();" 
+                 title="View Details">&#10132;</a>
+            </div>
+            <!-- Meta Information -->
+            <div class="project-meta">
+              <span class="project-industry">
+                Industry: ${project.bidang}
+              </span>
+            </div>
+            <!-- Owner (Hirer) Information -->
+            <div class="project-owner">
+              <img class="project-avatar" src="/static/img/${ project.avatar || 'default.png' }" alt="Avatar">
+              <div class="project-name">Hirer: ${project.created_by}</div>
+            </div>
+            <!-- Price -->
+            <div class="project-price">Rp. ${project.price}</div>
           </div>
         </div>
-      </div>
-      </div>`;
-  }
-  function sort_projects() {
-    sorted_projlist = [];
-    let sortedProjects = [...projlist].sort((a, b) => a.hours - b.hours); // Sort by hours (ascending)
-    sortedProjects.forEach((project, index) =>
-      sorted_projlist.push(projlist[projlist.indexOf(project)])
-    );
+      `;
+    });
   }
 
+  // Fungsi untuk redirect ke halaman detail proyek
+  function redirectToProject(projectId) {
+    window.location.href = "/id-project?id=" + projectId;
+  }
+
+  // Fungsi pencarian: filter proyek berdasarkan input
   function toSearch() {
-    let searchInput = document.querySelector(".project-search-box input");
-    if (searchInput != "") {
-      projlistcon.innerHTML = "";
-      let filter = searchInput.value.toUpperCase();
-      for (proj in sorted_projlist) {
-        let allTags = "";
-        for (tag in sorted_projlist[proj].tags) {
-          allTags += sorted_projlist[proj].tags[tag];
-        }
-        if (
-          sorted_projlist[proj].name.toUpperCase().indexOf(filter) > -1 ||
-          sorted_projlist[proj].title.toUpperCase().indexOf(filter) > -1 ||
-          allTags.toUpperCase().indexOf(filter) > -1
-        ) {
-          render_project(proj);
-        }
-      }
-    }
+    let searchInput = document.querySelector(".project-search-box input").value.toUpperCase();
+    let projectCards = document.querySelectorAll(".border-bg");
+    projectCards.forEach(card => {
+      let text = card.textContent || card.innerText;
+      card.style.display = text.toUpperCase().indexOf(searchInput) > -1 ? "" : "none";
+    });
   }
-  function returnTime(h) {
-    if (h < 1) {
-      return "less than an hour ago";
-    } else if (h < 24) {
-      return Math.floor(h) + "h ago";
-    } else if (h < 720) {
-      return Math.floor(h / 24) + "d ago";
-    } else {
-      return Math.floor(h / 720) + "m ago";
-    }
-  }
-  function returnStars(f) {
-    return (
-      "⭐".repeat(Math.floor(f + 0.2)) +
-      "☆".repeat(5 - Math.floor(f + 0.2)) +
-      " " +
-      f
-    );
-  }
+
+  // Inisialisasi tampilan dengan tab default (Best Match)
   changeButtons(0);
 </script>
 {% endblock %}
