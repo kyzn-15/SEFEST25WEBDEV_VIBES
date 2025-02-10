@@ -12,7 +12,7 @@ app.secret_key = os.urandom(24)
 app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(days=1)
 
 # Gunakan satu MongoDB URL untuk semua kebutuhan
-app.config["MONGO_URI"] = "mongodb+srv://win:123@wcluster.nlhup.mongodb.net/frilo?retryWrites=true&w=majority"
+app.config["MONGO_URI"] = "mongodb+srv://kevin:admin123@kyzn.vrph9.mongodb.net/SEFEST25WEBDEV_VIBES?retryWrites=true&w=majority&appName=Kyzn"
 mongo = PyMongo(app)
 
 # Inisialisasi SocketIO (dengan async_mode threading agar kompatibel)
@@ -264,11 +264,12 @@ def page_not_found(e):
 # ==================== ROUTES & SOCKETIO UNTUK FITUR CHAT ====================
 @app.route('/chat')
 def chat():
+    # Pastikan user sudah login dan memiliki session user_id
     if 'username' not in session or 'user_id' not in session:
         return redirect(url_for('login'))
     
-    flash("Page not found!", "error")
-    return render_template('chat.html')
+    # Hapus flash error yang tidak perlu, langsung render halaman chat
+    return render_template('chat.html', username=session['username'], user_id=session['user_id'])
 
 
 @app.route('/create_project', methods=['POST'])
